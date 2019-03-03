@@ -1,0 +1,9 @@
+[package]
+name = "lucrecia"
+version = "0.1.0"
+authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+# mpv = { git = "https://github.com/ParadoxSpiral/mpv-rs" }
+mpv = { path = "../mpv-rs" }
