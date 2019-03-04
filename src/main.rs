@@ -1,8 +1,8 @@
 extern crate mpv;
 
 mod player;
-use std::env;
 use player::{Player, SeekMode};
+use std::env;
 use std::{thread, time};
 
 fn main() {
