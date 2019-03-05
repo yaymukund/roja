@@ -6,4 +6,6 @@ edition = "2018"
 
 [dependencies]
 # mpv = { git = "https://github.com/ParadoxSpiral/mpv-rs" }
+cursive = "0.10"
 mpv = { path = "../mpv-rs" }
+crossbeam-utils = "0.6"
