@@ -1,11 +1,19 @@
-pub mod has_metadata;
+mod player_property;
+mod seek_mode;
+use cursive::views::TextContent;
+use mpv::events::events_simple::{Event, PropertyData};
 use mpv::Mpv;
+pub use player_property::PlayerProperty;
+use seek_mode::SeekMode;
+use std::collections::HashMap;
 
 pub struct Player {
     mpv: Mpv,
+    text_contents: HashMap<PlayerProperty, TextContent>,
 }
 
 impl Player {
+    const PROPERTIES: [PlayerProperty; 1] = [PlayerProperty::Elapsed];
     pub fn new() -> Player {
         let mpv = Mpv::new().unwrap();
 
@@ -24,7 +32,10 @@ impl Player {
         // Disable video output
         mpv.set_property("vo", "null").unwrap();
 
-        Player { mpv }
+        Player {
+            mpv,
+            text_contents: Default::default(),
+        }
     }
 
     pub fn play(&self, path: &str) {
@@ -36,7 +47,9 @@ impl Player {
     }
 
     pub fn elapsed(&self) -> i64 {
-        self.mpv.get_property("time-pos").unwrap()
+        self.mpv
+            .get_property(PlayerProperty::Elapsed.as_str())
+            .unwrap()
     }
 
     pub fn seek(&self, seconds: i64, mode: SeekMode) {
@@ -44,26 +57,47 @@ impl Player {
             .command("seek", &[&seconds.to_string(), mode.as_str()])
             .unwrap();
     }
-}
 
-pub enum SeekMode {
-    // Relative,
-    Absolute,
-    // AbsolutePercent,
-    // RelativePercent,
-    // Keyframes,
-    // Exact,
-}
+    pub fn text_contents(&mut self) -> &HashMap<PlayerProperty, TextContent> {
+        for property in Player::PROPERTIES.iter() {
+            self.mpv
+                .observe_property(property.as_str(), property.player_format(), 0)
+                .unwrap();
 
-impl SeekMode {
-    pub fn as_str(&self) -> &str {
-        match self {
-            // SeekMode::Relative => "relative",
-            SeekMode::Absolute => "absolute",
-            // SeekMode::AbsolutePercent => "absolute-percent",
-            // SeekMode::RelativePercent => "relative-percent",
-            // SeekMode::Keyframes => "keyframes",
-            // SeekMode::Exact => "exact",
+            let text_content = TextContent::new("");
+            self.text_contents.insert(property.clone(), text_content);
+        }
+
+        &self.text_contents
+    }
+
+    pub fn poll_events(&mut self) {
+        let event = unsafe { self.mpv.wait_event(0.0) };
+
+        if event.is_none() {
+            return;
+        }
+
+        let event = event.unwrap();
+
+        if event.is_err() {
+            return;
+        }
+
+        let event = event.unwrap();
+
+        if let Event::PropertyChange {
+            name,
+            change: PropertyData::Int64(data),
+            reply_userdata: _userdata,
+        } = event
+        {
+            println!("property change found!");
+            if name == "time-pos" {
+                self.text_contents
+                    .entry(PlayerProperty::Elapsed)
+                    .and_modify(|tc| tc.set_content(data.to_string()));
+            }
         }
     }
 }
