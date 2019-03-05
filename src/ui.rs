@@ -1,11 +1,9 @@
-use crate::player::HasMetadata;
+use crate::player::has_metadata::HasMetadata;
 use crate::player::Player;
 use cursive::align::HAlign;
 use cursive::views::{Dialog, LinearLayout, TextView};
 use cursive::Cursive;
 
-use std::thread;
-use std::time::Duration;
 pub fn create_application() -> Cursive {
     let song_path = "http://localhost:3000/song.mp3";
     let player = Player::new();

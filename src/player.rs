@@ -1,9 +1,5 @@
-use crossbeam_utils::thread;
-use cursive::views::TextContent;
-use mpv::events::events_simple::{Event, PropertyData};
-use mpv::{Format, Mpv};
-use std::collections::HashMap;
-mod player_metadata;
+pub mod has_metadata;
+use mpv::Mpv;
 
 pub struct Player {
     mpv: Mpv,
@@ -69,39 +65,5 @@ impl SeekMode {
             // SeekMode::Keyframes => "keyframes",
             // SeekMode::Exact => "exact",
         }
-    }
-}
-
-pub trait HasMetadata {
-    fn metadata(&self) -> HashMap<String, TextContent>;
-}
-
-impl HasMetadata for Player {
-    fn metadata(&self) -> HashMap<String, TextContent> {
-        self.mpv
-            .observe_property("time-pos", Format::Int64, 0)
-            .unwrap();
-
-        let mut metadata = HashMap::new();
-        let mut elapsed = TextContent::new("");
-
-        thread::scope(|s| {
-            s.spawn(|_| loop {
-                let event = unsafe { self.mpv.wait_event(600.) };
-                if let Some(Ok(Event::PropertyChange {
-                    name: _,
-                    change: PropertyData::Int64(data),
-                    reply_userdata: _,
-                })) = event
-                {
-                    println!("Now the time elapsed is {}", data.to_string());
-                    elapsed.set_content(data.to_string());
-                }
-            });
-        });
-        println!("Finished the crossbean thread");
-
-        metadata.insert("elapsed".to_string(), elapsed.clone());
-        metadata
     }
 }
