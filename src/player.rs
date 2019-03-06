@@ -1,7 +1,7 @@
 mod player_property;
 mod seek_mode;
 use cursive::views::TextContent;
-use mpv::events::events_simple::{Event, PropertyData};
+use mpv::events::simple::{Event, PropertyData};
 use mpv::Mpv;
 pub use player_property::PlayerProperty;
 use seek_mode::SeekMode;
@@ -64,7 +64,7 @@ impl Player {
                 .observe_property(property.as_str(), property.player_format(), 0)
                 .unwrap();
 
-            let text_content = TextContent::new("");
+            let text_content = TextContent::new("0");
             self.text_contents.insert(property.clone(), text_content);
         }
 
@@ -89,10 +89,9 @@ impl Player {
         if let Event::PropertyChange {
             name,
             change: PropertyData::Int64(data),
-            reply_userdata: _userdata,
+            ..
         } = event
         {
-            println!("property change found!");
             if name == "time-pos" {
                 self.text_contents
                     .entry(PlayerProperty::Elapsed)

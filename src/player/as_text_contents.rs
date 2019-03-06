@@ -1,5 +1,6 @@
 use crate::player::{Player, PlayerProperty};
 use cursive::views::TextContent;
+use log::debug;
 use std::collections::HashMap;
 
 pub trait AsTextContents {
@@ -12,12 +13,13 @@ where
 {
     fn text_contents(&self) -> HashMap<PlayerProperty, TextContent> {
         let elapsed = PlayerProperty::Elapsed;
-        let text_content = TextContent::new("");
+        let text_content = TextContent::new("0");
         let mut text_contents = HashMap::new();
 
         text_contents.insert(elapsed, text_content.clone());
 
         self.on_property_change(PlayerProperty::Elapsed, |data| {
+            debug!("Changed property to {}", data.to_string());
             text_content.set_content(data.to_string());
         });
 
