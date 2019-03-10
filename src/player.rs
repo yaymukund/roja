@@ -1,21 +1,25 @@
 mod events;
+mod mpv_api;
 mod player_property;
 mod seek_mode;
 use cursive::views::TextContent;
 pub use events::PlayerEventHandler;
-use mpv::Mpv;
+pub use mpv_api::MpvApi;
 pub use player_property::PlayerProperty;
 use seek_mode::SeekMode;
 use std::collections::HashMap;
 
-pub struct Player<'a> {
-    mpv: &'a Mpv,
+pub struct Player<'a, T> {
+    mpv: &'a T,
     text_contents: HashMap<PlayerProperty, TextContent>,
 }
 
-impl<'a> Player<'a> {
+impl<'a, T> Player<'a, T>
+where
+    T: MpvApi,
+{
     const PROPERTIES: [PlayerProperty; 2] = [PlayerProperty::Elapsed, PlayerProperty::Duration];
-    pub fn new(mpv: &'a Mpv) -> Player<'a> {
+    pub fn new(mpv: &'a T) -> Player<'a, T> {
         let mut player = Player {
             mpv,
             text_contents: Default::default(),
@@ -30,28 +34,31 @@ impl<'a> Player<'a> {
         self.mpv.command("loadfile", &[path]).unwrap();
     }
 
+    #[allow(dead_code)]
     pub fn append(&self, path: &str) {
         self.mpv.command("loadfile", &[path, "append"]).unwrap();
     }
 
+    #[allow(dead_code)]
     pub fn elapsed(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Elapsed.as_str())
             .unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn seek(&self, seconds: i64, mode: SeekMode) {
         self.mpv
             .command("seek", &[&seconds.to_string(), mode.as_str()])
             .unwrap();
     }
 
-    pub fn text_contents(&self) -> &HashMap<PlayerProperty, TextContent> {
+    pub fn get_text_contents(&self) -> &HashMap<PlayerProperty, TextContent> {
         &self.text_contents
     }
 
     fn observe_properties(&mut self) {
-        for property in Player::PROPERTIES.iter() {
+        for property in Self::PROPERTIES.iter() {
             self.mpv
                 .observe_property(property.as_str(), property.player_format(), 0)
                 .unwrap();
@@ -77,4 +84,9 @@ impl<'a> Player<'a> {
         // Disable video output
         self.mpv.set_property("vo", "null").unwrap();
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
 }

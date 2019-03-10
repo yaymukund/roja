@@ -9,4 +9,9 @@ cursive = "0.10"
 crossbeam-utils = "0.6"
 env_logger = "0.6.0"
 log = "0.4"
+mockers_derive = "0.13.1"
 mpv = { git = "https://github.com/ParadoxSpiral/mpv-rs" }
+structopt = "0.2"
+
+[dev-dependencies]
+mockers = "0.13.1"

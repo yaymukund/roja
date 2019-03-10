@@ -1,4 +1,4 @@
-use crate::player::{Player, PlayerProperty};
+use crate::player::{MpvApi, Player, PlayerProperty};
 use mpv::events::simple::{Event, PropertyData};
 
 pub trait PlayerEventHandler {
@@ -9,7 +9,10 @@ pub trait PlayerEventHandler {
     fn ev_property_change(&mut self, name: &str, change: PropertyData);
 }
 
-impl<'a> PlayerEventHandler for Player<'a> {
+impl<'a, T> PlayerEventHandler for Player<'a, T>
+where
+    T: MpvApi,
+{
     fn poll_events(&mut self) {
         let event = { unsafe { self.mpv.wait_event(0.0) } };
 
