@@ -89,4 +89,104 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use mpv::Mpv;
+    use mpv_api::{MockMpv, MpvCommand, MOCK_MP3};
+
+    fn assert_did_invoke(mock_mpv: &MockMpv, mpv_command: MpvCommand) {
+        assert!(mock_mpv.did_invoke(mpv_command));
+    }
+
+    #[test]
+    fn test_new() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+
+        Player::new(&mock_mpv);
+
+        assert_did_invoke(&mock_mpv, MpvCommand::DisableDeprecatedEvents);
+        assert_did_invoke(
+            &mock_mpv,
+            MpvCommand::SetProperty("cache-initial".to_string()),
+        );
+        assert_did_invoke(
+            &mock_mpv,
+            MpvCommand::SetProperty("prefetch-playlist".to_string()),
+        );
+        assert_did_invoke(&mock_mpv, MpvCommand::SetProperty("vo".to_string()));
+    }
+
+    #[test]
+    fn test_new_observes_properties() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+
+        Player::new(&mock_mpv);
+
+        for property in Player::<MockMpv>::PROPERTIES.iter() {
+            assert_did_invoke(
+                &mock_mpv,
+                MpvCommand::ObserveProperty(property.as_str().to_string()),
+            );
+        }
+    }
+
+    #[test]
+    fn test_play() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+        let player = Player::new(&mock_mpv);
+
+        player.play(MOCK_MP3);
+        assert_did_invoke(&mock_mpv, MpvCommand::Command("loadfile".to_string()));
+    }
+
+    #[test]
+    fn test_append() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+        let player = Player::new(&mock_mpv);
+
+        player.append(MOCK_MP3);
+        assert_did_invoke(&mock_mpv, MpvCommand::Command("loadfile".to_string()));
+    }
+
+    #[test]
+    fn test_elapsed() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+        let player = Player::new(&mock_mpv);
+        player.play(MOCK_MP3);
+        // wait for it to load.. would be good to not have to do this.
+        mock_mpv.pause();
+        player.elapsed();
+
+        assert_did_invoke(
+            &mock_mpv,
+            MpvCommand::GetProperty(PlayerProperty::Elapsed.as_str().to_string()),
+        );
+    }
+
+    #[test]
+    fn test_seek() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+        let player = Player::new(&mock_mpv);
+        player.play(MOCK_MP3);
+        // wait for it to load.. would be good to not have to do this.
+        mock_mpv.pause();
+        player.seek(1, SeekMode::Absolute);
+        assert_did_invoke(&mock_mpv, MpvCommand::Command("seek".to_string()));
+    }
+
+    #[test]
+    fn test_text_contents_contains_observed_properties() {
+        let mpv = Mpv::new().unwrap();
+        let mock_mpv = MockMpv::new(&mpv);
+        let player = Player::new(&mock_mpv);
+
+        let text_contents = player.get_text_contents();
+        for property in Player::<MockMpv>::PROPERTIES.iter() {
+            assert!(text_contents.contains_key(property));
+        }
+    }
 }

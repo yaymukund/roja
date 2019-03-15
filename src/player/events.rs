@@ -14,7 +14,7 @@ where
     T: MpvApi,
 {
     fn poll_events(&mut self) {
-        let event = { unsafe { self.mpv.wait_event(0.0) } };
+        let event = { self.mpv.wait_event(0.0) };
 
         if let Some(Ok(event)) = event {
             self.handle_event(event);

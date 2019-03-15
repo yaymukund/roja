@@ -244,7 +244,6 @@ dependencies = [
  "cursive 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "mockers 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "mockers_derive 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
  "structopt 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -258,11 +257,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "memchr"
 version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "mockers"
-version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -809,7 +803,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
 "checksum maplit 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "08cbb6b4fef96b6d77bfc40ec491b1690c779e77b05cd9f07f787ed376fd4c43"
 "checksum memchr 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2efc7bc57c883d4a4d6e3246905283d8dae951bb3bd32f49d6ef297f546e1c39"
-"checksum mockers 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)" = "108dd6eaa9fa672e2db43e22a16afed3078fa2b8ebfbcac8f97049c1546f845e"
 "checksum mockers_derive 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b0f2b3df73118fd4207a7cee794c9ca1c2d5afd8c8231178947e304474181c5d"
 "checksum mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)" = "<none>"
 "checksum mpv-sys 2.0.0 (git+https://github.com/ParadoxSpiral/mpv-rs)" = "<none>"
