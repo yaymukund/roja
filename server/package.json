@@ -1,5 +1,5 @@
 {
-  "name": "lucrecia-server",
+  "name": "roja-server",
   "version": "1.0.0",
   "description": "Serves mp3s for development purposes.",
   "main": "index.js",

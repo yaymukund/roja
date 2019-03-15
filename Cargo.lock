@@ -237,19 +237,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lucrecia"
-version = "0.1.0"
-dependencies = [
- "crossbeam-utils 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "cursive 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "mockers_derive 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
- "structopt 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "maplit"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -541,6 +528,19 @@ version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ucd-util 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "roja"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-utils 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cursive 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mockers_derive 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
+ "structopt 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

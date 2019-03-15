@@ -3,7 +3,7 @@ use structopt::StructOpt;
 
 // A command line music player written in Rust.
 #[derive(StructOpt, Debug)]
-#[structopt(name = "lucrecia")]
+#[structopt(name = "roja")]
 pub struct Config {
     // Path to your music library.
     #[structopt(short = "l", long = "music-library", parse(from_os_str))]
