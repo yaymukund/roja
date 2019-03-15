@@ -93,7 +93,10 @@ mod test {
     use mpv_api::{MockMpv, MpvCommand, MOCK_MP3};
 
     fn assert_did_invoke(mock_mpv: &MockMpv, mpv_command: MpvCommand) {
-        assert!(mock_mpv.did_invoke(mpv_command));
+        assert!(mock_mpv
+            .invocations()
+            .iter()
+            .any(|invocation| *invocation == mpv_command));
     }
 
     #[test]

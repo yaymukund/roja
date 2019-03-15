@@ -79,12 +79,6 @@ mod test {
             self.invocations.borrow()
         }
 
-        pub fn did_invoke(&self, mpv_command: MpvCommand) -> bool {
-            self.invocations()
-                .iter()
-                .any(|invocation| *invocation == mpv_command)
-        }
-
         pub fn pause(&self) {
             let ms = time::Duration::from_millis(100);
             thread::sleep(ms);
