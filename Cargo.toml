@@ -12,3 +12,4 @@ log = "0.4"
 mockers_derive = "0.13.1"
 mpv = { git = "https://github.com/ParadoxSpiral/mpv-rs" }
 structopt = "0.2"
+xdg = "^2.1"
