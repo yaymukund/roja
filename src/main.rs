@@ -1,18 +1,18 @@
-mod config;
 mod player;
+mod settings;
 mod ui;
 mod util;
 
-use config::Config;
 use env_logger::{Builder, Target};
 use mpv::Mpv;
 use player::{Player, PlayerEventHandler as _};
+use settings::Settings;
 use ui::create_application;
 
 fn main() {
     init_logging();
 
-    let config = Config::new();
+    let settings = Settings::new();
 
     let song_path = "http://localhost:3000/song.mp3";
     let mpv = Mpv::new().unwrap();

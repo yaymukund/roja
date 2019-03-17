@@ -11,5 +11,7 @@ env_logger = "0.6.0"
 log = "0.4"
 mockers_derive = "0.13.1"
 mpv = { git = "https://github.com/ParadoxSpiral/mpv-rs" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 structopt = "0.2"
 xdg = "^2.1"

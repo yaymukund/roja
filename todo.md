@@ -1,7 +1,7 @@
 ## Roadmap to v1
 
 - [ ] **Fetch metadata and index files**
-  - [ ] Configure paths
+  - [x] Configure paths
   - [ ] SSH library integration
   - [ ] Loading bar
 
