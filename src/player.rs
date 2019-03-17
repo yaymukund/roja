@@ -91,6 +91,7 @@ mod test {
     use super::*;
     use mpv::Mpv;
     use mpv_api::{MockMpv, MpvCommand, MOCK_MP3};
+    use serial_test_derive::serial;
 
     fn assert_did_invoke(mock_mpv: &MockMpv, mpv_command: MpvCommand) {
         assert!(mock_mpv
@@ -100,6 +101,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_new() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -119,6 +121,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_new_observes_properties() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -134,6 +137,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_play() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -144,6 +148,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_append() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -154,6 +159,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_elapsed() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -170,6 +176,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_seek() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
@@ -182,6 +189,7 @@ mod test {
     }
 
     #[test]
+    #[serial]
     fn test_text_contents_contains_observed_properties() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);

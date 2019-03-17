@@ -42,15 +42,10 @@ pub use self::test::*;
 #[cfg(test)]
 mod test {
     use super::*;
-    use lazy_static::lazy_static;
     use std::cell::{Ref, RefCell};
-    use std::sync::{Mutex, MutexGuard};
     use std::{thread, time};
 
     pub const MOCK_MP3: &str = "mocks/1-second.mp3";
-    lazy_static! {
-        static ref MPV_MUTEX: Mutex<()> = Mutex::new(());
-    }
 
     #[derive(Debug, PartialEq)]
     pub enum MpvCommand {
@@ -67,18 +62,13 @@ mod test {
     pub struct MockMpv<'a> {
         invocations: RefCell<Vec<MpvCommand>>,
         mpv: &'a Mpv,
-        _mpv_guard: MutexGuard<'a, ()>,
     }
 
     impl<'a> MockMpv<'a> {
         pub fn new(mpv: &'a Mpv) -> MockMpv<'a> {
             let invocations = RefCell::new(Vec::new());
-            let mpv_guard = MPV_MUTEX.lock().unwrap();
-            MockMpv {
-                invocations,
-                mpv,
-                _mpv_guard: mpv_guard,
-            }
+
+            MockMpv { invocations, mpv }
         }
 
         fn push_invocation(&self, command: MpvCommand) {
