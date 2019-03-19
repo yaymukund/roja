@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
-    music_library_path: PathBuf,
-    metadata_path: PathBuf,
-    metadata_index_path: PathBuf,
+    pub music_library_path: PathBuf,
+    pub metadata_path: PathBuf,
+    pub metadata_index_path: PathBuf,
 }
 
 impl Config {
@@ -17,8 +17,6 @@ impl Config {
         });
         let reader = BufReader::new(file);
         // We want it to panic if the json is invalid.
-        let config = serde_json::from_reader(reader).unwrap();
-        dbg!(&config);
-        config
+        serde_json::from_reader(reader).unwrap()
     }
 }

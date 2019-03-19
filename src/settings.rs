@@ -2,6 +2,7 @@ mod config;
 use config::Config;
 mod cli;
 use cli::Cli;
+use std::path::PathBuf;
 
 pub struct Settings {
     cli: Cli,
@@ -27,5 +28,9 @@ impl Settings {
             config: Config::from_path(config_path),
             xdg,
         }
+    }
+
+    pub fn metadata_path(&self) -> &PathBuf {
+        &self.config.metadata_path
     }
 }

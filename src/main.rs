@@ -1,9 +1,11 @@
+mod library;
 mod player;
 mod settings;
 mod ui;
 mod util;
 
 use env_logger::{Builder, Target};
+use library::Library;
 use mpv::Mpv;
 use player::{Player, PlayerEventHandler as _};
 use settings::Settings;
@@ -13,6 +15,7 @@ fn main() {
     init_logging();
 
     let settings = Settings::new();
+    let library = Library::from_path(settings.metadata_path());
 
     let song_path = "http://localhost:3000/song.mp3";
     let mpv = Mpv::new().unwrap();
