@@ -4,7 +4,6 @@ mod settings;
 mod ui;
 mod util;
 
-use env_logger::{Builder, Target};
 use library::Library;
 use mpv::Mpv;
 use player::{Player, PlayerEventHandler as _};
@@ -12,8 +11,6 @@ use settings::Settings;
 use ui::create_application;
 
 fn main() {
-    init_logging();
-
     let settings = Settings::new();
     let library = Library::from_path(settings.metadata_path());
 
@@ -24,14 +21,8 @@ fn main() {
 
     player.play(song_path);
 
-    loop {
+    while app.is_running() {
         player.poll_events();
         app.step();
     }
-}
-
-fn init_logging() {
-    let mut log_builder = Builder::new();
-    log_builder.target(Target::Stderr);
-    log_builder.init();
 }

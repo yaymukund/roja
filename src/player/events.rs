@@ -32,8 +32,8 @@ where
         if let Ok(prop) = name.parse::<PlayerProperty>() {
             let new_value = prop.parse_property_data(data);
 
-            let text_content = self.text_contents.get_mut(&prop).unwrap();
-            text_content.set_content(new_value);
+            let metadata = self.metadata.get_mut(&prop).unwrap();
+            metadata.set_content(new_value);
         }
     }
 }

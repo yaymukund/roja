@@ -9,9 +9,11 @@ pub use player_property::PlayerProperty;
 use seek_mode::SeekMode;
 use std::collections::HashMap;
 
+pub type Metadata = HashMap<PlayerProperty, TextContent>;
+
 pub struct Player<'a, T> {
     mpv: &'a T,
-    text_contents: HashMap<PlayerProperty, TextContent>,
+    metadata: Metadata,
 }
 
 impl<'a, T> Player<'a, T>
@@ -22,7 +24,7 @@ where
     pub fn new(mpv: &'a T) -> Player<'a, T> {
         let mut player = Player {
             mpv,
-            text_contents: Default::default(),
+            metadata: Default::default(),
         };
 
         player.init_defaults();
@@ -53,8 +55,8 @@ where
             .unwrap();
     }
 
-    pub fn get_text_contents(&self) -> &HashMap<PlayerProperty, TextContent> {
-        &self.text_contents
+    pub fn get_metadata(&self) -> &Metadata {
+        &self.metadata
     }
 
     fn observe_properties(&mut self) {
@@ -64,7 +66,7 @@ where
                 .unwrap();
 
             let text_content = TextContent::new(property.default_value());
-            self.text_contents.insert(property.clone(), text_content);
+            self.metadata.insert(property.clone(), text_content);
         }
     }
 
@@ -190,14 +192,14 @@ mod test {
 
     #[test]
     #[serial]
-    fn test_text_contents_contains_observed_properties() {
+    fn test_metadata_contains_observed_properties() {
         let mpv = Mpv::new().unwrap();
         let mock_mpv = MockMpv::new(&mpv);
         let player = Player::new(&mock_mpv);
 
-        let text_contents = player.get_text_contents();
+        let metadata = player.get_metadata();
         for property in Player::<MockMpv>::PROPERTIES.iter() {
-            assert!(text_contents.contains_key(property));
+            assert!(metadata.contains_key(property));
         }
     }
 }

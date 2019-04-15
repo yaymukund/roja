@@ -1,18 +1,14 @@
-use crate::player::{MpvApi, Player, PlayerProperty};
+use crate::player::{Metadata, PlayerProperty};
 use cursive::view::ViewWrapper;
 use cursive::views::{LinearLayout, TextView};
 use cursive::wrap_impl;
 
-pub struct ApplicationView {
+pub struct PlayerView {
     view: LinearLayout,
 }
 
-impl ApplicationView {
-    pub fn new<T>(player: &Player<T>) -> ApplicationView
-    where
-        T: MpvApi,
-    {
-        let metadata = player.get_text_contents();
+impl PlayerView {
+    pub fn new(metadata: &Metadata) -> PlayerView {
         let elapsed = metadata.get(&PlayerProperty::Elapsed).unwrap().clone();
         let duration = metadata.get(&PlayerProperty::Duration).unwrap().clone();
 
@@ -21,10 +17,10 @@ impl ApplicationView {
             .child(TextView::new("/"))
             .child(TextView::new_with_content(duration));
 
-        ApplicationView { view }
+        PlayerView { view }
     }
 }
 
-impl ViewWrapper for ApplicationView {
+impl ViewWrapper for PlayerView {
     wrap_impl!(self.view: LinearLayout);
 }

@@ -29,6 +29,7 @@ impl Library {
             library.tracks.len(),
             library.folders.len()
         );
+
         library
     }
 }
