@@ -1,6 +1,8 @@
+use crate::ui::{ApplicationView, MainView};
 use cursive::view::{Identifiable, ViewWrapper};
 use cursive::views::{EditView, IdView};
 use cursive::wrap_impl;
+use cursive::Cursive;
 use std::ops::{Deref, DerefMut};
 
 pub struct SearchView {
@@ -16,11 +18,9 @@ impl SearchView {
 
     pub fn new() -> SearchView {
         let view = EditView::new()
-            .on_submit(|c, _| {
-                c.call_on_id(Self::ID, |v: &mut SearchView| v.search());
-            })
-            .content("Enter a search thing")
-            .disabled();
+            .disabled()
+            .on_submit(cb_close_search)
+            .on_edit(cb_submit_search);
 
         SearchView { view }
     }
@@ -29,9 +29,23 @@ impl SearchView {
         Self::new().with_id(Self::ID)
     }
 
-    pub fn search(&mut self) {
-        unimplemented!();
+    pub fn clear(&mut self) {
+        self.set_content("");
     }
+
+    pub fn search(&mut self, _query: &str) {
+        // perform search
+    }
+}
+
+fn cb_close_search(app: &mut Cursive, _search_term: &str) {
+    app.call_on_id(ApplicationView::ID, |v: &mut ApplicationView| {
+        v.focus_id(MainView::ID)
+    });
+}
+
+fn cb_submit_search(app: &mut Cursive, search_term: &str, _cursor_position: usize) {
+    app.call_on_id(SearchView::ID, |v: &mut SearchView| v.search(search_term));
 }
 
 impl Deref for SearchView {

@@ -1,9 +1,9 @@
 use crate::player::{MpvApi, Player};
-use crate::ui::{PlayerView, SearchView};
+use crate::ui::{MainView, PlayerView, SearchView};
 use cursive::traits::View;
 use cursive::view::Boxable;
 use cursive::view::{Identifiable, Selector, ViewWrapper};
-use cursive::views::{BoxView, DummyView, IdView, LinearLayout};
+use cursive::views::{BoxView, IdView, LinearLayout};
 use cursive::wrap_impl;
 
 pub struct ApplicationView {
@@ -25,7 +25,7 @@ impl ApplicationView {
 
         let view = LinearLayout::vertical()
             .child(PlayerView::new(metadata))
-            .child(BoxView::with_full_screen(DummyView))
+            .child(BoxView::with_full_screen(MainView::new_with_id()))
             .child(SearchView::new_with_id().full_width());
 
         ApplicationView { view }
