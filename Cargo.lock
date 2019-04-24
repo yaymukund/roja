@@ -237,16 +237,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "mpv"
 version = "0.1.0"
-source = "git+https://github.com/ParadoxSpiral/mpv-rs#5b753b2f3e62f247201b455571c2b0bdc2481033"
+source = "git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file#23bf04d186cc1aac203185f611d46c73d0901e1e"
 dependencies = [
- "mpv-sys 2.0.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
+ "mpv-sys 2.0.0 (git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file)",
  "parking_lot 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "mpv-sys"
 version = "2.0.0"
-source = "git+https://github.com/ParadoxSpiral/mpv-rs#5b753b2f3e62f247201b455571c2b0bdc2481033"
+source = "git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file#23bf04d186cc1aac203185f611d46c73d0901e1e"
 
 [[package]]
 name = "ncurses"
@@ -486,7 +486,7 @@ name = "roja"
 version = "0.1.0"
 dependencies = [
  "cursive 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
+ "mpv 0.1.0 (git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file)",
  "serde 1.0.90 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.39 (registry+https://github.com/rust-lang/crates.io-index)",
  "serial_test 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -771,8 +771,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum lock_api 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "62ebf1391f6acad60e5c8b43706dde4582df75c06698ab44511d15016bc2442c"
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
 "checksum maplit 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "08cbb6b4fef96b6d77bfc40ec491b1690c779e77b05cd9f07f787ed376fd4c43"
-"checksum mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)" = "<none>"
-"checksum mpv-sys 2.0.0 (git+https://github.com/ParadoxSpiral/mpv-rs)" = "<none>"
+"checksum mpv 0.1.0 (git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file)" = "<none>"
+"checksum mpv-sys 2.0.0 (git+https://github.com/yaymukund/mpv-rs?branch=handle-end-file)" = "<none>"
 "checksum ncurses 5.99.0 (registry+https://github.com/rust-lang/crates.io-index)" = "15699bee2f37e9f8828c7b35b2bc70d13846db453f2d507713b758fabe536b82"
 "checksum num 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cf4825417e1e1406b3782a8ce92f4d53f26ec055e3622e1881ca8e9f5f9e08db"
 "checksum num-complex 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "107b9be86cd2481930688277b675b0114578227f034674726605b8a482d8baf8"
