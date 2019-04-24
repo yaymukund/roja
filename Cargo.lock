@@ -485,7 +485,6 @@ dependencies = [
 name = "roja"
 version = "0.1.0"
 dependencies = [
- "crossbeam-utils 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "cursive 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "mpv 0.1.0 (git+https://github.com/ParadoxSpiral/mpv-rs)",
  "serde 1.0.90 (registry+https://github.com/rust-lang/crates.io-index)",
