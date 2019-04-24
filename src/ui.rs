@@ -1,19 +1,24 @@
-mod runtime_state;
-mod views;
+mod application;
+mod main;
+mod player;
+mod search;
+
+use crate::runtime::Runtime;
+pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
-use mpv::Mpv;
-pub use runtime_state::Runtime;
-pub use views::{ApplicationView, MainView, PlayerView, SearchView};
+pub use main::MainView;
+pub use player::PlayerView;
+pub use search::SearchView;
 
-pub fn create_application<'a>() -> Cursive {
-    let mpv = Mpv::new().unwrap();
-    let runtime = Runtime::new(&mpv);
+pub fn create_application() -> Cursive {
+    let runtime = Runtime::new();
     let metadata = runtime.player().get_metadata().clone();
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);
 
     let mut app = Cursive::default();
+    app.set_user_data(runtime);
     app.set_autorefresh(true);
     app.add_layer(ApplicationView::new_with_id(&metadata));
     setup_global_callbacks(&mut app);

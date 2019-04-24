@@ -5,13 +5,14 @@ use mpv::Mpv;
 use std::cell::{Ref, RefCell};
 use std::rc::Rc;
 
-pub struct Runtime<'a> {
-    pub player: Rc<RefCell<Player<'a, Mpv>>>,
+pub struct Runtime {
+    pub player: Rc<RefCell<Player<Mpv>>>,
     pub library: Rc<RefCell<Library>>,
 }
 
-impl<'a> Runtime<'a> {
-    pub fn new(mpv: &'a Mpv) -> Runtime<'a> {
+impl Runtime {
+    pub fn new() -> Runtime {
+        let mpv = Mpv::new().unwrap();
         let settings = Settings::new();
         let library = Library::from_path(settings.metadata_path());
         let player = Player::new(mpv);

@@ -1,10 +1,12 @@
 mod library;
 mod player;
+mod runtime;
 mod settings;
 mod ui;
 mod util;
 
-use ui::{create_application, Runtime};
+use runtime::Runtime;
+use ui::create_application;
 
 fn main() {
     let mut app = create_application();

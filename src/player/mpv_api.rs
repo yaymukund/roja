@@ -43,7 +43,6 @@ pub use self::test::*;
 mod test {
     use super::*;
     use std::cell::{Ref, RefCell};
-    use std::{thread, time};
 
     pub const MOCK_MP3: &str = "mocks/1-second.mp3";
 
@@ -59,13 +58,14 @@ mod test {
 
     use MpvCommand::*;
 
-    pub struct MockMpv<'a> {
+    pub struct MockMpv {
         invocations: RefCell<Vec<MpvCommand>>,
-        mpv: &'a Mpv,
+        mpv: Mpv,
     }
 
-    impl<'a> MockMpv<'a> {
-        pub fn new(mpv: &'a Mpv) -> MockMpv<'a> {
+    impl MockMpv {
+        pub fn new() -> MockMpv {
+            let mpv = Mpv::new().unwrap();
             let invocations = RefCell::new(Vec::new());
 
             MockMpv { invocations, mpv }
@@ -79,42 +79,37 @@ mod test {
         pub fn invocations(&self) -> Ref<Vec<MpvCommand>> {
             self.invocations.borrow()
         }
-
-        pub fn pause(&self) {
-            let ms = time::Duration::from_millis(100);
-            thread::sleep(ms);
-        }
     }
 
-    impl<'a> MpvApi for MockMpv<'a> {
+    impl MpvApi for MockMpv {
         fn command(&self, name: &str, args: &[&str]) -> Result<()> {
             self.push_invocation(Command(name.to_string()));
-            Mpv::command(self.mpv, name, args)
+            Mpv::command(&self.mpv, name, args)
         }
 
         fn disable_deprecated_events(&self) -> Result<()> {
             self.push_invocation(DisableDeprecatedEvents);
-            Mpv::disable_deprecated_events(self.mpv)
+            Mpv::disable_deprecated_events(&self.mpv)
         }
 
         fn get_property<T: GetData>(&self, name: &str) -> Result<T> {
             self.push_invocation(GetProperty(name.to_string()));
-            Mpv::get_property(self.mpv, name)
+            Mpv::get_property(&self.mpv, name)
         }
 
         fn observe_property(&self, name: &str, format: Format, id: u64) -> Result<()> {
             self.push_invocation(ObserveProperty(name.to_string()));
-            Mpv::observe_property(self.mpv, name, format, id)
+            Mpv::observe_property(&self.mpv, name, format, id)
         }
 
         fn set_property(&self, name: &str, value: impl SetData) -> Result<()> {
             self.push_invocation(SetProperty(name.to_string()));
-            Mpv::set_property(self.mpv, name, value)
+            Mpv::set_property(&self.mpv, name, value)
         }
 
         fn wait_event(&self, timeout: f64) -> Option<Result<Event>> {
             self.push_invocation(WaitEvent);
-            unsafe { Mpv::wait_event(self.mpv, timeout) }
+            unsafe { Mpv::wait_event(&self.mpv, timeout) }
         }
     }
 }

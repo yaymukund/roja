@@ -38,7 +38,10 @@ impl SearchView {
     }
 }
 
-fn cb_close_search(app: &mut Cursive, _search_term: &str) {
+fn cb_close_search(app: &mut Cursive, search_term: &str) {
+    cb_submit_search(app, search_term, 0);
+
+    app.call_on_id(SearchView::ID, |v: &mut SearchView| v.disable());
     app.call_on_id(ApplicationView::ID, |v: &mut ApplicationView| {
         v.focus_id(MainView::ID)
     });
