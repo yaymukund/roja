@@ -1,4 +1,4 @@
-use crate::player::{MpvApi, Player};
+use crate::player::Metadata;
 use crate::ui::{MainView, PlayerView, SearchView};
 use cursive::traits::View;
 use cursive::view::Boxable;
@@ -17,12 +17,7 @@ impl ViewWrapper for ApplicationView {
 impl ApplicationView {
     pub const ID: &'static str = "application";
 
-    pub fn new<'a, T>(player: &Player<'a, T>) -> ApplicationView
-    where
-        T: MpvApi,
-    {
-        let metadata = player.get_metadata();
-
+    pub fn new(metadata: &Metadata) -> ApplicationView {
         let view = LinearLayout::vertical()
             .child(PlayerView::new(metadata))
             .child(BoxView::with_full_screen(MainView::new_with_id()))
@@ -31,11 +26,8 @@ impl ApplicationView {
         ApplicationView { view }
     }
 
-    pub fn new_with_id<'a, T>(player: &Player<'a, T>) -> IdView<ApplicationView>
-    where
-        T: MpvApi,
-    {
-        Self::new(player).with_id(Self::ID)
+    pub fn new_with_id(metadata: &Metadata) -> IdView<ApplicationView> {
+        Self::new(metadata).with_id(Self::ID)
     }
 
     pub fn focus_id(&mut self, id: impl Into<String>) -> Result<(), ()> {

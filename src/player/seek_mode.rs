@@ -1,5 +1,5 @@
 pub enum SeekMode {
-    // Relative,
+    Relative,
     Absolute,
     // AbsolutePercent,
     // RelativePercent,
@@ -10,7 +10,7 @@ pub enum SeekMode {
 impl SeekMode {
     pub fn as_str(&self) -> &str {
         match self {
-            // SeekMode::Relative => "relative",
+            SeekMode::Relative => "relative",
             SeekMode::Absolute => "absolute",
             // SeekMode::AbsolutePercent => "absolute-percent",
             // SeekMode::RelativePercent => "relative-percent",

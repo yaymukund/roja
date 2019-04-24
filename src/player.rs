@@ -48,11 +48,19 @@ where
             .unwrap()
     }
 
-    #[allow(dead_code)]
     pub fn seek(&self, seconds: i64, mode: SeekMode) {
         self.mpv
             .command("seek", &[&seconds.to_string(), mode.as_str()])
             .unwrap();
+    }
+
+    pub fn seek_forward(&self) {
+        println!("Seeking forward!");
+        self.seek(10, SeekMode::Relative);
+    }
+
+    pub fn seek_backward(&self) {
+        self.seek(-10, SeekMode::Relative);
     }
 
     pub fn get_metadata(&self) -> &Metadata {
