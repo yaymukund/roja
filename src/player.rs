@@ -55,11 +55,11 @@ where
     }
 
     pub fn seek_forward(&self) {
-        self.seek(10, SeekMode::Relative);
+        self.seek(5, SeekMode::Relative);
     }
 
     pub fn seek_backward(&self) {
-        self.seek(-10, SeekMode::Relative);
+        self.seek(-5, SeekMode::Relative);
     }
 
     pub fn get_metadata(&self) -> &Metadata {
