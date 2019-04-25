@@ -13,7 +13,7 @@ pub use search::SearchView;
 
 pub fn create_application() -> Cursive {
     let runtime = Runtime::new();
-    let metadata = runtime.player().get_metadata().clone();
+    let metadata = runtime.player().metadata().clone();
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);
 
@@ -30,6 +30,7 @@ pub fn setup_global_callbacks(app: &mut Cursive) {
     app.add_global_callback('/', cb_open_search);
     app.add_global_callback(Key::Right, cb_seek_forward);
     app.add_global_callback(Key::Left, cb_seek_backward);
+    app.add_global_callback('c', cb_toggle_pause);
 }
 
 fn cb_quit_cursive(app: &mut Cursive) {
@@ -55,5 +56,11 @@ fn cb_seek_forward(app: &mut Cursive) {
 fn cb_seek_backward(app: &mut Cursive) {
     app.with_user_data(|runtime: &mut Runtime| {
         runtime.player().seek_backward();
+    });
+}
+
+fn cb_toggle_pause(app: &mut Cursive) {
+    app.with_user_data(|runtime: &mut Runtime| {
+        runtime.player().toggle_pause();
     });
 }

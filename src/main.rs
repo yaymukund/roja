@@ -9,6 +9,7 @@ use runtime::Runtime;
 use ui::create_application;
 
 fn main() {
+    env_logger::init();
     let mut app = create_application();
 
     while app.is_running() {

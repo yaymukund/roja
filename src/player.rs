@@ -33,12 +33,12 @@ where
     }
 
     pub fn play(&self, path: &str) {
-        self.mpv.command("loadfile", &[path]).unwrap();
+        self.command("loadfile", &[path]);
     }
 
     #[allow(dead_code)]
     pub fn append(&self, path: &str) {
-        self.mpv.command("loadfile", &[path, "append"]).unwrap();
+        self.command("loadfile", &[path, "append"]);
     }
 
     #[allow(dead_code)]
@@ -49,9 +49,7 @@ where
     }
 
     pub fn seek(&self, seconds: i64, mode: SeekMode) {
-        self.mpv
-            .command("seek", &[&seconds.to_string(), mode.as_str()])
-            .unwrap();
+        self.command("seek", &[&seconds.to_string(), mode.as_str()]);
     }
 
     pub fn seek_forward(&self) {
@@ -62,8 +60,24 @@ where
         self.seek(-5, SeekMode::Relative);
     }
 
-    pub fn get_metadata(&self) -> &Metadata {
+    pub fn metadata(&self) -> &Metadata {
         &self.metadata
+    }
+
+    pub fn paused(&self) -> bool {
+        let paused: String = self.mpv.get_property("pause").unwrap();
+        paused == "yes"
+    }
+
+    pub fn toggle_pause(&self) {
+        let next = if self.paused() { "no" } else { "yes" };
+        self.mpv.set_property("pause", next).unwrap();
+    }
+
+    fn command(&self, name: &str, args: &[&str]) {
+        self.mpv
+            .command(name, args)
+            .unwrap_or_else(|e| log::error!("mpv {} error: {:?}", name, e));
     }
 
     fn observe_properties(&mut self) {
@@ -198,7 +212,7 @@ mod test {
         let mock_mpv = MockMpv::new();
         let player = Player::new(mock_mpv);
 
-        let metadata = player.get_metadata();
+        let metadata = player.metadata();
         for property in Player::<MockMpv>::PROPERTIES.iter() {
             assert!(metadata.contains_key(property));
         }
