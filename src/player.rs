@@ -1,30 +1,30 @@
-mod events;
+mod event;
+mod event_handler;
+mod evented;
 mod mpv_api;
 mod player_property;
 mod seek_mode;
-use cursive::views::TextContent;
-pub use events::PlayerEventHandler;
+use event_handler::EventHandler;
+pub use evented::Evented;
 pub use mpv_api::MpvApi;
 pub use player_property::PlayerProperty;
 use seek_mode::SeekMode;
-use std::collections::HashMap;
 
-pub type Metadata = HashMap<PlayerProperty, TextContent>;
+pub const PROPERTIES: [PlayerProperty; 2] = [PlayerProperty::Elapsed, PlayerProperty::Duration];
 
 pub struct Player<T> {
     mpv: T,
-    metadata: Metadata,
+    event_handler: EventHandler,
 }
 
 impl<T> Player<T>
 where
     T: MpvApi,
 {
-    const PROPERTIES: [PlayerProperty; 2] = [PlayerProperty::Elapsed, PlayerProperty::Duration];
     pub fn new(mpv: T) -> Player<T> {
         let mut player = Player {
             mpv,
-            metadata: Default::default(),
+            event_handler: Default::default(),
         };
 
         player.init_defaults();
@@ -60,10 +60,6 @@ where
         self.seek(-5, SeekMode::Relative);
     }
 
-    pub fn metadata(&self) -> &Metadata {
-        &self.metadata
-    }
-
     pub fn paused(&self) -> bool {
         let paused: String = self.mpv.get_property("pause").unwrap();
         paused == "yes"
@@ -74,20 +70,28 @@ where
         self.mpv.set_property("pause", next).unwrap();
     }
 
+    pub fn poll_events(&self) {
+        match self.mpv.wait_event(0.0) {
+            Some(Ok(event)) => {
+                let event = event::Event::from(event);
+                self.event_handler.trigger(event);
+            }
+            _ => return,
+        }
+    }
+
     fn command(&self, name: &str, args: &[&str]) {
         self.mpv
             .command(name, args)
             .unwrap_or_else(|e| log::error!("mpv {} error: {:?}", name, e));
     }
 
+    /// tells the mpv api that we want property change events.
     fn observe_properties(&mut self) {
-        for property in Self::PROPERTIES.iter() {
+        for property in PROPERTIES.iter() {
             self.mpv
                 .observe_property(property.as_str(), property.player_format(), 0)
                 .unwrap();
-
-            let text_content = TextContent::new(property.default_value());
-            self.metadata.insert(property.clone(), text_content);
         }
     }
 
@@ -153,7 +157,7 @@ mod test {
         let mock_mpv = MockMpv::new();
         let player = Player::new(mock_mpv);
 
-        for property in Player::<MockMpv>::PROPERTIES.iter() {
+        for property in PROPERTIES.iter() {
             player.assert_did_invoke(MpvCommand::ObserveProperty(property.as_str().to_string()));
         }
     }
@@ -204,17 +208,5 @@ mod test {
         pause_test();
         player.seek(1, SeekMode::Absolute);
         player.assert_did_invoke(MpvCommand::Command("seek".to_string()));
-    }
-
-    #[test]
-    #[serial]
-    fn test_metadata_contains_observed_properties() {
-        let mock_mpv = MockMpv::new();
-        let player = Player::new(mock_mpv);
-
-        let metadata = player.metadata();
-        for property in Player::<MockMpv>::PROPERTIES.iter() {
-            assert!(metadata.contains_key(property));
-        }
     }
 }

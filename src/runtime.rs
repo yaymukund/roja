@@ -1,8 +1,8 @@
 use crate::library::Library;
-use crate::player::{Player, PlayerEventHandler};
+use crate::player::Player;
 use crate::settings::Settings;
 use mpv::Mpv;
-use std::cell::{Ref, RefCell};
+use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
 pub struct Runtime {
@@ -23,8 +23,8 @@ impl Runtime {
         }
     }
 
-    pub fn player(&self) -> Ref<Player<Mpv>> {
-        self.player.borrow()
+    pub fn player(&self) -> RefMut<Player<Mpv>> {
+        self.player.borrow_mut()
     }
 
     pub fn poll_events(&self) {

@@ -1,5 +1,6 @@
 mod application;
 mod main;
+mod metadata;
 mod player;
 mod search;
 
@@ -8,12 +9,14 @@ pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
 pub use main::MainView;
+pub use metadata::Metadata;
 pub use player::PlayerView;
 pub use search::SearchView;
 
 pub fn create_application() -> Cursive {
     let runtime = Runtime::new();
-    let metadata = runtime.player().metadata().clone();
+    let metadata = Metadata::new();
+    metadata.initialize(&mut runtime.player());
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);
 

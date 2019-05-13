@@ -26,10 +26,10 @@ impl PlayerProperty {
         }
     }
 
-    pub fn parse_property_data(&self, property_data: PropertyData) -> String {
+    pub fn parse_property_data(&self, property_data: &PropertyData) -> String {
         match (self, property_data) {
-            (Elapsed, PropertyData::Int64(data)) => format_duration(data),
-            (Duration, PropertyData::Int64(data)) => format_duration(data),
+            (Elapsed, PropertyData::Int64(data)) => format_duration(*data),
+            (Duration, PropertyData::Int64(data)) => format_duration(*data),
             (_, _) => String::from("Error: Unknown Property"),
         }
     }

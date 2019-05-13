@@ -1,5 +1,4 @@
-use crate::player::Metadata;
-use crate::ui::{MainView, PlayerView, SearchView};
+use crate::ui::{MainView, Metadata, PlayerView, SearchView};
 use cursive::traits::View;
 use cursive::view::Boxable;
 use cursive::view::{Identifiable, Selector, ViewWrapper};
