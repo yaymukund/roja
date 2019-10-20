@@ -71,12 +71,9 @@ where
     }
 
     pub fn poll_events(&self) {
-        match self.mpv.wait_event(0.0) {
-            Some(Ok(event)) => {
-                let event = event::Event::from(event);
-                self.event_handler.trigger(event);
-            }
-            _ => return,
+        if let Some(Ok(event)) = self.mpv.wait_event(0.0) {
+            let event = event::Event::from(event);
+            self.event_handler.trigger(event);
         }
     }
 
