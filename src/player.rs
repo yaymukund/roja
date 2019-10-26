@@ -98,7 +98,7 @@ where
 
         // Playback will start when the cache has been filled up with this many
         // kilobytes of data (default: 0).
-        self.mpv.set_property("cache-initial", 10).unwrap();
+        self.mpv.set_property("cache-secs", 10).unwrap();
 
         // Prefetch next playlist entry while playback of the current entry is
         // ending (default: no). This merely opens the URL of the next playlist

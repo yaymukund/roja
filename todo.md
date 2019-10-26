@@ -2,7 +2,7 @@
 
 - [ ] **Fetch metadata and index files**
   - [x] Configure paths
-  - [ ] SSH library integration
+  - [ ] ~~SSH library integration~~ Just pass ssh:// url to mpv
   - [ ] Loading bar
 
 - [ ] **Playlist**
