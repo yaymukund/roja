@@ -8,7 +8,7 @@ pub enum Event<'a> {
 }
 
 impl<'a> From<MpvEvent<'a>> for Event<'a> {
-    fn from(event: MpvEvent) -> Event {
+    fn from(event: MpvEvent<'_>) -> Event<'_> {
         match event {
             MpvEvent::PropertyChange { name, change, .. } => {
                 if let Ok(prop) = name.parse::<PlayerProperty>() {

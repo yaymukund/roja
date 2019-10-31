@@ -24,7 +24,7 @@ impl Metadata {
         T: MpvApi,
     {
         let text_contents = self.text_contents.clone();
-        let on_property_change = move |property: &PlayerProperty, data: &PropertyData| {
+        let on_property_change = move |property: &PlayerProperty, data: &PropertyData<'_>| {
             let mut text_contents = text_contents.clone();
             let text_content = text_contents.get_mut(property).unwrap();
             text_content.set_content(property.parse_property_data(&data));

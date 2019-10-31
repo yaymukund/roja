@@ -23,7 +23,7 @@ impl Runtime {
         }
     }
 
-    pub fn player(&self) -> RefMut<Player<Mpv>> {
+    pub fn player(&self) -> RefMut<'_, Player<Mpv>> {
         self.player.borrow_mut()
     }
 

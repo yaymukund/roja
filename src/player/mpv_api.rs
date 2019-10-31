@@ -7,7 +7,7 @@ pub trait MpvApi {
     fn get_property<T: GetData>(&self, name: &str) -> Result<T>;
     fn observe_property(&self, name: &str, format: Format, id: u64) -> Result<()>;
     fn set_property(&self, name: &str, value: impl SetData) -> Result<()>;
-    fn wait_event(&self, timeout: f64) -> Option<Result<Event>>;
+    fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>>;
 }
 
 impl MpvApi for Mpv {
@@ -31,7 +31,7 @@ impl MpvApi for Mpv {
         Mpv::set_property(self, name, value)
     }
 
-    fn wait_event(&self, timeout: f64) -> Option<Result<Event>> {
+    fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>> {
         unsafe { Mpv::wait_event(self, timeout) }
     }
 }
@@ -76,7 +76,7 @@ mod test {
             invocations.push(command);
         }
 
-        pub fn invocations(&self) -> Ref<Vec<MpvCommand>> {
+        pub fn invocations(&self) -> Ref<'_, Vec<MpvCommand>> {
             self.invocations.borrow()
         }
     }
@@ -107,7 +107,7 @@ mod test {
             Mpv::set_property(&self.mpv, name, value)
         }
 
-        fn wait_event(&self, timeout: f64) -> Option<Result<Event>> {
+        fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>> {
             self.push_invocation(WaitEvent);
             unsafe { Mpv::wait_event(&self.mpv, timeout) }
         }

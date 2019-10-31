@@ -2,7 +2,7 @@ use super::event::Event;
 use crate::player::PlayerProperty;
 use mpv::events::simple::PropertyData;
 
-pub type OnPropertyChange = dyn Fn(&PlayerProperty, &PropertyData);
+pub type OnPropertyChange = dyn Fn(&PlayerProperty, &PropertyData<'_>);
 
 #[derive(Default)]
 pub struct EventHandler {
@@ -10,7 +10,7 @@ pub struct EventHandler {
 }
 
 impl EventHandler {
-    pub fn trigger(&self, event: Event) {
+    pub fn trigger(&self, event: Event<'_>) {
         if let Event::PropertyChange(player_property, property_data) = event {
             self.trigger_property_change(player_property, property_data)
         }
@@ -22,7 +22,7 @@ impl EventHandler {
     fn trigger_property_change(
         &self,
         player_property: PlayerProperty,
-        property_data: PropertyData,
+        property_data: PropertyData<'_>,
     ) {
         for callback in &self.property_change {
             callback(&player_property, &property_data);
