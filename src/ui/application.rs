@@ -18,7 +18,7 @@ impl ApplicationView {
 
     pub fn new(metadata: &Metadata) -> ApplicationView {
         let view = LinearLayout::vertical()
-            .child(PlayerView::new(metadata))
+            .child(PlayerView::new(&metadata))
             .child(BoxView::with_full_screen(MainView::new_with_id()))
             .child(SearchView::new_with_id().full_width());
 
@@ -26,7 +26,7 @@ impl ApplicationView {
     }
 
     pub fn new_with_id(metadata: &Metadata) -> IdView<ApplicationView> {
-        Self::new(metadata).with_id(Self::ID)
+        Self::new(&metadata).with_id(Self::ID)
     }
 
     pub fn focus_id(&mut self, id: impl Into<String>) -> Result<(), ()> {

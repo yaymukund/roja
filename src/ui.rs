@@ -1,4 +1,5 @@
 mod application;
+mod label;
 mod main;
 mod metadata;
 mod player;
@@ -15,8 +16,7 @@ pub use search::SearchView;
 
 pub fn create_application() -> Cursive {
     let runtime = Runtime::new();
-    let metadata = Metadata::new();
-    metadata.initialize(&mut runtime.player());
+    let metadata = runtime.metadata().clone();
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);
 

@@ -65,6 +65,11 @@ where
         paused == "yes"
     }
 
+    pub fn idle(&self) -> bool {
+        let idle: String = self.mpv.get_property("idle").unwrap();
+        idle == "yes"
+    }
+
     pub fn toggle_pause(&self) {
         let next = if self.paused() { "no" } else { "yes" };
         self.mpv.set_property("pause", next).unwrap();

@@ -7,6 +7,7 @@ use mpv::Format;
 pub enum PlayerProperty {
     Duration,
     Elapsed,
+    Pause,
 }
 
 use PlayerProperty::*;
@@ -16,6 +17,7 @@ impl PlayerProperty {
         match self {
             Elapsed => "time-pos",
             Duration => "duration",
+            Pause => "pause",
         }
     }
 
@@ -23,6 +25,7 @@ impl PlayerProperty {
         match self {
             Elapsed => Format::Int64,
             Duration => Format::Int64,
+            Pause => Format::String,
         }
     }
 
@@ -31,13 +34,6 @@ impl PlayerProperty {
             (Elapsed, PropertyData::Int64(data)) => format_duration(*data),
             (Duration, PropertyData::Int64(data)) => format_duration(*data),
             (_, _) => String::from("Error: Unknown Property"),
-        }
-    }
-
-    pub fn default_value(&self) -> &str {
-        match self {
-            Elapsed => "00:00",
-            Duration => "00:00",
         }
     }
 }
