@@ -3,7 +3,7 @@ use crate::library::Library;
 use crate::player::{Evented, Player, PlayerProperty};
 use crate::runtime::handle_property_change::handle_property_change;
 use crate::settings::Settings;
-use crate::ui::Metadata;
+use crate::ui::LabelSet;
 use mpv::events::simple::PropertyData;
 use mpv::Mpv;
 use std::cell::{Ref, RefCell, RefMut};
@@ -13,7 +13,7 @@ use std::rc::Rc;
 pub struct Runtime {
     pub player: Rc<RefCell<Player<Mpv>>>,
     pub library: Rc<RefCell<Library>>,
-    pub metadata: Rc<RefCell<Metadata>>,
+    pub label_set: Rc<RefCell<LabelSet>>,
 }
 
 impl Runtime {
@@ -22,12 +22,12 @@ impl Runtime {
         let settings = Settings::new();
         let library = Library::from_path(settings.metadata_path());
         let player = Player::new(mpv);
-        let metadata = Metadata::new();
+        let label_set = LabelSet::new();
 
         let runtime = Runtime {
             player: Rc::new(RefCell::new(player)),
             library: Rc::new(RefCell::new(library)),
-            metadata: Rc::new(RefCell::new(metadata)),
+            label_set: Rc::new(RefCell::new(label_set)),
         };
 
         runtime.listen_for_changes();
@@ -52,7 +52,7 @@ impl Runtime {
         self.player.borrow_mut().poll_events();
     }
 
-    pub fn metadata(&self) -> Ref<Metadata> {
-        self.metadata.borrow()
+    pub fn label_set(&self) -> Ref<LabelSet> {
+        self.label_set.borrow()
     }
 }

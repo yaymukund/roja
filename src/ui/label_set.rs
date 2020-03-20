@@ -1,14 +1,14 @@
-use crate::ui::label::{Label, LABELS};
+use crate::ui::{Label, LABELS};
 use cursive::views::TextContent;
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub struct Metadata {
+pub struct LabelSet {
     text_contents: HashMap<Label, TextContent>,
 }
 
-impl Metadata {
-    pub fn new() -> Metadata {
+impl LabelSet {
+    pub fn new() -> LabelSet {
         let mut text_contents: HashMap<Label, TextContent> = Default::default();
 
         for label in LABELS.iter() {
@@ -16,7 +16,7 @@ impl Metadata {
             text_contents.insert(label.clone(), text_content);
         }
 
-        Metadata { text_contents }
+        LabelSet { text_contents }
     }
 
     pub fn get(&self, label: &Label) -> &TextContent {

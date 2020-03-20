@@ -1,7 +1,7 @@
 mod application;
 mod label;
+mod label_set;
 mod main;
-mod metadata;
 mod player;
 mod search;
 
@@ -9,21 +9,22 @@ use crate::runtime::Runtime;
 pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
+pub use label::{Label, LABELS};
+pub use label_set::LabelSet;
 pub use main::MainView;
-pub use metadata::Metadata;
 pub use player::PlayerView;
 pub use search::SearchView;
 
 pub fn create_application() -> Cursive {
     let runtime = Runtime::new();
-    let metadata = runtime.metadata().clone();
+    let label_set = runtime.label_set().clone();
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);
 
     let mut app = Cursive::default();
     app.set_user_data(runtime);
     app.set_autorefresh(true);
-    app.add_layer(ApplicationView::new_with_id(&metadata));
+    app.add_layer(ApplicationView::new_with_id(&label_set));
     setup_global_callbacks(&mut app);
     app
 }

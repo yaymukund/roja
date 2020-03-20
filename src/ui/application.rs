@@ -1,4 +1,4 @@
-use crate::ui::{MainView, Metadata, PlayerView, SearchView};
+use crate::ui::{LabelSet, MainView, PlayerView, SearchView};
 use cursive::traits::View;
 use cursive::view::Boxable;
 use cursive::view::{Identifiable, Selector, ViewWrapper};
@@ -16,17 +16,17 @@ impl ViewWrapper for ApplicationView {
 impl ApplicationView {
     pub const ID: &'static str = "application";
 
-    pub fn new(metadata: &Metadata) -> ApplicationView {
+    pub fn new(label_set: &LabelSet) -> ApplicationView {
         let view = LinearLayout::vertical()
-            .child(PlayerView::new(&metadata))
+            .child(PlayerView::new(&label_set))
             .child(BoxView::with_full_screen(MainView::new_with_id()))
             .child(SearchView::new_with_id().full_width());
 
         ApplicationView { view }
     }
 
-    pub fn new_with_id(metadata: &Metadata) -> IdView<ApplicationView> {
-        Self::new(&metadata).with_id(Self::ID)
+    pub fn new_with_id(label_set: &LabelSet) -> IdView<ApplicationView> {
+        Self::new(&label_set).with_id(Self::ID)
     }
 
     pub fn focus_id(&mut self, id: impl Into<String>) -> Result<(), ()> {

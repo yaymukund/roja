@@ -1,5 +1,5 @@
 use crate::player::PlayerProperty;
-use crate::ui::metadata::Metadata;
+use crate::ui::{Label, LabelSet};
 use cursive::view::ViewWrapper;
 use cursive::views::{LinearLayout, TextView};
 use cursive::wrap_impl;
@@ -9,16 +9,13 @@ pub struct PlayerView {
 }
 
 impl PlayerView {
-    pub fn new(metadata: &Metadata) -> PlayerView {
-        let elapsed = metadata.get(&PlayerProperty::Elapsed).clone();
-        let duration = metadata.get(&PlayerProperty::Duration).clone();
-        let indicator = metadata.get(&PlayerProperty::Indicator).clone();
+    pub fn new(label_set: &LabelSet) -> PlayerView {
+        let track_time = label_set.get(&Label::TrackTime).clone();
+        let play_pause = label_set.get(&Label::PlayPauseIndicator).clone();
 
         let view = LinearLayout::horizontal()
-            .child(TextView::new_with_content(indicator))
-            .child(TextView::new_with_content(elapsed))
-            .child(TextView::new("/"))
-            .child(TextView::new_with_content(duration));
+            .child(TextView::new_with_content(play_pause))
+            .child(TextView::new_with_content(track_time));
 
         PlayerView { view }
     }
