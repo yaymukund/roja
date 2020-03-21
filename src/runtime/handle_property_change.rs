@@ -1,7 +1,6 @@
 use crate::player::PlayerProperty;
 use crate::runtime::Runtime;
 use crate::ui::{Label, LabelSet};
-use cursive::views::TextContent;
 use mpv::events::simple::PropertyData;
 
 pub fn handle_property_change(property: &PlayerProperty, data: &PropertyData, runtime: &Runtime) {
@@ -23,11 +22,11 @@ pub fn handle_property_change(property: &PlayerProperty, data: &PropertyData, ru
 }
 
 fn update_playing_state(runtime: &Runtime) {
-    let player = runtime.player();
+    let player = runtime.player.borrow();
 
     let indicator = if player.paused() {
         "||"
-    } else if player.idle() {
+    } else if player.core_idle() {
         ""
     } else {
         "►"

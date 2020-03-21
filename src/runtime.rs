@@ -48,27 +48,21 @@ impl Runtime {
         self.player.borrow_mut()
     }
 
-    fn event_handler(&mut self) -> RefMut<'_, EventHandler> {
-        self.event_handler.borrow_mut()
-    }
-
     fn listen_for_changes(&mut self) {
         let runtime = self.clone();
         let on_property_change = move |property: &PlayerProperty, data: &PropertyData<'_>| {
             handle_property_change(property, data, &runtime);
         };
 
-        self.event_handler()
+        self.event_handler
+            .borrow_mut()
             .on_property_change(Box::new(on_property_change));
     }
 
-    pub fn poll_events(&mut self) {
-        if let Some(event) = self.get_player_event() {
-            self.event_handler().trigger(event);
+    pub fn poll_events(&self) {
+        if let Some(event) = self.player.borrow().poll_events() {
+            let event = Event::from(event);
+            self.event_handler.borrow().trigger(event);
         }
-    }
-
-    fn get_player_event(&self) -> Option<Event> {
-        self.player.borrow().poll_events().map(Event::from)
     }
 }

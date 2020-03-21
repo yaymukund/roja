@@ -1,4 +1,4 @@
-use mpv::events::simple::Event;
+use mpv::events::simple::Event as MpvEvent;
 use mpv::{Format, GetData, Mpv, Result, SetData};
 
 pub trait MpvApi {
@@ -7,7 +7,7 @@ pub trait MpvApi {
     fn get_property<T: GetData>(&self, name: &str) -> Result<T>;
     fn observe_property(&self, name: &str, format: Format, id: u64) -> Result<()>;
     fn set_property(&self, name: &str, value: impl SetData) -> Result<()>;
-    fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>>;
+    fn wait_event(&self, timeout: f64) -> Option<Result<MpvEvent<'_>>>;
 }
 
 impl MpvApi for Mpv {
@@ -31,7 +31,7 @@ impl MpvApi for Mpv {
         Mpv::set_property(self, name, value)
     }
 
-    fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>> {
+    fn wait_event(&self, timeout: f64) -> Option<Result<MpvEvent<'_>>> {
         unsafe { Mpv::wait_event(self, timeout) }
     }
 }
@@ -107,7 +107,7 @@ mod test {
             Mpv::set_property(&self.mpv, name, value)
         }
 
-        fn wait_event(&self, timeout: f64) -> Option<Result<Event<'_>>> {
+        fn wait_event(&self, timeout: f64) -> Option<Result<MpvEvent<'_>>> {
             self.push_invocation(WaitEvent);
             unsafe { Mpv::wait_event(&self.mpv, timeout) }
         }

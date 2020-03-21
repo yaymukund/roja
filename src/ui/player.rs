@@ -1,4 +1,3 @@
-use crate::player::PlayerProperty;
 use crate::ui::{Label, LabelSet};
 use cursive::view::ViewWrapper;
 use cursive::views::{LinearLayout, TextView};
