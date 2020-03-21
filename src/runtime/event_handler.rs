@@ -1,5 +1,5 @@
-use super::event::Event;
 use crate::player::PlayerProperty;
+use crate::runtime::event::Event;
 use mpv::events::simple::PropertyData;
 
 pub type OnPropertyChange = dyn Fn(&PlayerProperty, &PropertyData<'_>);

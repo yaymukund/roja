@@ -1,20 +1,19 @@
-mod event;
-mod event_handler;
-mod evented;
 mod mpv_api;
 mod player_property;
 mod seek_mode;
-use event_handler::EventHandler;
-pub use evented::Evented;
+use mpv::events::simple::Event as MpvEvent;
 pub use mpv_api::MpvApi;
 pub use player_property::PlayerProperty;
 use seek_mode::SeekMode;
 
-pub const PROPERTIES: [PlayerProperty; 2] = [PlayerProperty::Elapsed, PlayerProperty::Duration];
+pub const PROPERTIES: [PlayerProperty; 3] = [
+    PlayerProperty::Elapsed,
+    PlayerProperty::Duration,
+    PlayerProperty::Pause,
+];
 
 pub struct Player<T> {
     mpv: T,
-    event_handler: EventHandler,
 }
 
 impl<T> Player<T>
@@ -22,10 +21,7 @@ where
     T: MpvApi,
 {
     pub fn new(mpv: T) -> Player<T> {
-        let mut player = Player {
-            mpv,
-            event_handler: Default::default(),
-        };
+        let mut player = Player { mpv };
 
         player.init_defaults();
         player.observe_properties();
@@ -75,10 +71,11 @@ where
         self.mpv.set_property("pause", next).unwrap();
     }
 
-    pub fn poll_events(&self) {
+    pub fn poll_events(&self) -> Option<MpvEvent> {
         if let Some(Ok(event)) = self.mpv.wait_event(0.0) {
-            let event = event::Event::from(event);
-            self.event_handler.trigger(event);
+            Some(event)
+        } else {
+            None
         }
     }
 

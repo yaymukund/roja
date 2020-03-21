@@ -1,12 +1,19 @@
 use crate::player::PlayerProperty;
 use crate::runtime::Runtime;
-use crate::ui::Metadata;
+use crate::ui::{Label, LabelSet};
+use cursive::views::TextContent;
 use mpv::events::simple::PropertyData;
 
 pub fn handle_property_change(property: &PlayerProperty, data: &PropertyData, runtime: &Runtime) {
     match property {
-        PlayerProperty::Duration | PlayerProperty::Elapsed => {
-            copy_property_to_metadata(property, data, runtime)
+        PlayerProperty::Duration => {
+            let text = property.parse_property_data(&data);
+            copy_property_to_label(&Label::TotalTime, text, runtime);
+        }
+
+        PlayerProperty::Elapsed => {
+            let text = property.parse_property_data(&data);
+            copy_property_to_label(&Label::ElapsedTime, text, runtime);
         }
 
         PlayerProperty::Pause => {
@@ -26,18 +33,21 @@ fn update_playing_state(runtime: &Runtime) {
         "►"
     };
 
-    let metadata = runtime.metadata();
-    update_property(metadata, &PlayerProperty::PlayState, indicator);
+    let label_set = runtime.label_set();
+    update_property(
+        &label_set,
+        &Label::PlayPauseIndicator,
+        indicator.to_string(),
+    );
 }
 
-fn update_property(metadata: &Metadata, property: &PlayerProperty, text: &str) {
-    let mut text_content = metadata.get(property).clone();
-    text_content.set_property(text);
+fn update_property(label_set: &LabelSet, label: &Label, text: String) {
+    let mut text_content = label_set.get(label).clone();
+    text_content.set_content(&text);
 }
 
-fn copy_property_to_metadata(property: &PlayerProperty, data: &PropertyData, runtime: &Runtime) {
-    let metadata = runtime.metadata();
-    let mut text_content = metadata.get(property).clone();
-    let text = property.parse_property_data(&data);
+fn copy_property_to_label(label: &Label, text: String, runtime: &Runtime) {
+    let label_set = runtime.label_set();
+    let mut text_content = label_set.get(label).clone();
     text_content.set_content(&text);
 }

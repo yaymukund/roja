@@ -43,8 +43,9 @@ impl FromStr for PlayerProperty {
 
     fn from_str(s: &str) -> Result<PlayerProperty, Self::Err> {
         match s {
-            "time-pos" => Ok(PlayerProperty::Elapsed),
-            "duration" => Ok(PlayerProperty::Duration),
+            "time-pos" => Ok(Elapsed),
+            "duration" => Ok(Duration),
+            "pause" => Ok(Pause),
             _ => Err(()),
         }
     }
