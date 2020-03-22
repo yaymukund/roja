@@ -1,6 +1,6 @@
 use crate::ui::{ApplicationView, MainView};
-use cursive::view::{Identifiable, ViewWrapper};
-use cursive::views::{EditView, IdView};
+use cursive::view::{Nameable, ViewWrapper};
+use cursive::views::{EditView, NamedView};
 use cursive::wrap_impl;
 use cursive::Cursive;
 use std::ops::{Deref, DerefMut};
@@ -14,7 +14,7 @@ impl ViewWrapper for SearchView {
 }
 
 impl SearchView {
-    pub const ID: &'static str = "search";
+    pub const NAME: &'static str = "search";
 
     pub fn new() -> SearchView {
         let view = EditView::new()
@@ -25,8 +25,8 @@ impl SearchView {
         SearchView { view }
     }
 
-    pub fn new_with_id() -> IdView<SearchView> {
-        Self::new().with_id(Self::ID)
+    pub fn new_with_name() -> NamedView<SearchView> {
+        Self::new().with_name(Self::NAME)
     }
 
     pub fn clear(&mut self) {
@@ -41,14 +41,14 @@ impl SearchView {
 fn cb_close_search(app: &mut Cursive, search_term: &str) {
     cb_submit_search(app, search_term, 0);
 
-    app.call_on_id(SearchView::ID, |v: &mut SearchView| v.disable());
-    app.call_on_id(ApplicationView::ID, |v: &mut ApplicationView| {
-        v.focus_id(MainView::ID)
+    app.call_on_name(SearchView::NAME, |v: &mut SearchView| v.disable());
+    app.call_on_name(ApplicationView::NAME, |v: &mut ApplicationView| {
+        v.focus_name(MainView::NAME)
     });
 }
 
 fn cb_submit_search(app: &mut Cursive, search_term: &str, _cursor_position: usize) {
-    app.call_on_id(SearchView::ID, |v: &mut SearchView| v.search(search_term));
+    app.call_on_name(SearchView::NAME, |v: &mut SearchView| v.search(search_term));
 }
 
 impl Deref for SearchView {

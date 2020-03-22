@@ -5,7 +5,7 @@ authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-cursive = "0.13"
+cursive = "0.14"
 env_logger = "0.7"
 log = "0.4"
 mpv = { path = "../mpv-rs" }

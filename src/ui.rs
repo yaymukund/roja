@@ -24,7 +24,7 @@ pub fn create_application() -> Cursive {
     let mut app = Cursive::default();
     app.set_user_data(runtime);
     app.set_autorefresh(true);
-    app.add_layer(ApplicationView::new_with_id(&label_set));
+    app.add_layer(ApplicationView::new_with_name(&label_set));
     setup_global_callbacks(&mut app);
     app
 }
@@ -42,12 +42,12 @@ fn cb_quit_cursive(app: &mut Cursive) {
 }
 
 fn cb_open_search(app: &mut Cursive) {
-    app.call_on_id(SearchView::ID, |v: &mut SearchView| {
+    app.call_on_name(SearchView::NAME, |v: &mut SearchView| {
         v.enable();
         v.clear();
     });
-    app.call_on_id(ApplicationView::ID, |v: &mut ApplicationView| {
-        v.focus_id(SearchView::ID).unwrap();
+    app.call_on_name(ApplicationView::NAME, |v: &mut ApplicationView| {
+        v.focus_name(SearchView::NAME).unwrap();
     });
 }
 

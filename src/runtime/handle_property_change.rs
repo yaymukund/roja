@@ -25,7 +25,7 @@ fn update_playing_state(runtime: &Runtime) {
     let player = runtime.player.borrow();
 
     let indicator = if player.paused() {
-        "||"
+        "▋▋"
     } else if player.core_idle() {
         ""
     } else {

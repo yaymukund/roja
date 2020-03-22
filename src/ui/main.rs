@@ -1,5 +1,5 @@
-use cursive::view::{Identifiable, ViewWrapper};
-use cursive::views::{DummyView, IdView, LinearLayout};
+use cursive::view::{Nameable, ViewWrapper};
+use cursive::views::{DummyView, LinearLayout, NamedView};
 use cursive::wrap_impl;
 
 pub struct MainView {
@@ -11,14 +11,14 @@ impl ViewWrapper for MainView {
 }
 
 impl MainView {
-    pub const ID: &'static str = "main";
+    pub const NAME: &'static str = "main";
 
     pub fn new() -> MainView {
         let view = LinearLayout::horizontal().child(DummyView).child(DummyView);
         MainView { view }
     }
 
-    pub fn new_with_id() -> IdView<MainView> {
-        Self::new().with_id(Self::ID)
+    pub fn new_with_name() -> NamedView<MainView> {
+        Self::new().with_name(Self::NAME)
     }
 }
