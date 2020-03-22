@@ -41,12 +41,12 @@ fn update_playing_state(runtime: &Runtime) {
 }
 
 fn update_property(label_set: &LabelSet, label: &Label, text: String) {
-    let mut text_content = label_set.get(label).clone();
+    let text_content = label_set.get(label).clone();
     text_content.set_content(&text);
 }
 
 fn copy_property_to_label(label: &Label, text: String, runtime: &Runtime) {
     let label_set = runtime.label_set();
-    let mut text_content = label_set.get(label).clone();
+    let text_content = label_set.get(label).clone();
     text_content.set_content(&text);
 }
