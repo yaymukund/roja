@@ -353,14 +353,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "mpv"
 version = "0.1.0"
+source = "git+https://github.com/yaymukund/mpv-rs#18e7d5cdb5bec8545106c8db3cba34c8a2c7fb68"
 dependencies = [
- "mpv-sys 2.0.0",
+ "mpv-sys 2.0.0 (git+https://github.com/yaymukund/mpv-rs)",
  "parking_lot 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "mpv-sys"
 version = "2.0.0"
+source = "git+https://github.com/yaymukund/mpv-rs#18e7d5cdb5bec8545106c8db3cba34c8a2c7fb68"
 
 [[package]]
 name = "ncurses"
@@ -672,7 +674,7 @@ dependencies = [
  "cursive 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "mpv 0.1.0",
+ "mpv 0.1.0 (git+https://github.com/yaymukund/mpv-rs)",
  "serde 1.0.105 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.48 (registry+https://github.com/rust-lang/crates.io-index)",
  "serial_test 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1019,6 +1021,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum maplit 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
 "checksum maybe-uninit 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
 "checksum memchr 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "88579771288728879b57485cc7d6b07d648c9f0141eb955f8ab7f9d45394468e"
+"checksum mpv 0.1.0 (git+https://github.com/yaymukund/mpv-rs)" = "<none>"
+"checksum mpv-sys 2.0.0 (git+https://github.com/yaymukund/mpv-rs)" = "<none>"
 "checksum ncurses 5.99.0 (registry+https://github.com/rust-lang/crates.io-index)" = "15699bee2f37e9f8828c7b35b2bc70d13846db453f2d507713b758fabe536b82"
 "checksum num 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cf4825417e1e1406b3782a8ce92f4d53f26ec055e3622e1881ca8e9f5f9e08db"
 "checksum num-complex 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "fcb0cf31fb3ff77e6d2a6ebd6800df7fdcd106f2ad89113c9130bcd07f93dffc"
