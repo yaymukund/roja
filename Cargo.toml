@@ -9,11 +9,11 @@ cursive = "0.14"
 env_logger = "0.7"
 log = "0.4"
 mpv = { path = "../mpv-rs" }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-structopt = "0.3"
+serde = { version = "1.0.105", features = ["derive"] }
+serde_json = "1.0.48"
+structopt = "0.3.12"
 xdg = "^2.1"
 
 [dev-dependencies]
-serial_test = "0.2"
-serial_test_derive = "0.2"
+serial_test = "0.4"
+serial_test_derive = "0.4"
