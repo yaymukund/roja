@@ -5,18 +5,22 @@ mod main;
 mod player;
 mod search;
 
+use crate::player::Player;
 use crate::runtime::Runtime;
+use crate::ui::player::PlayerView;
 pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
 pub use label::{Label, LABELS};
 pub use label_set::LabelSet;
 pub use main::MainView;
-pub use player::PlayerView;
+use mpv::Mpv;
 pub use search::SearchView;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-pub fn create_application() -> Cursive {
-    let runtime = Runtime::new();
+pub fn create_application(player: Rc<RefCell<Player<Mpv>>>) -> Cursive {
+    let runtime = Runtime::new(player);
     let label_set = runtime.label_set().clone();
     let song_path = "http://localhost:3000/song.mp3";
     runtime.player().play(song_path);

@@ -2,7 +2,7 @@ mod event;
 mod event_handler;
 mod handle_property_change;
 use crate::library::Library;
-use crate::player::{Player, PlayerProperty};
+use crate::player::{Player, PlayerProperty, RcPlayer};
 use crate::runtime::event::Event;
 use crate::runtime::event_handler::EventHandler;
 use crate::runtime::handle_property_change::handle_property_change;
@@ -15,22 +15,20 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Runtime {
-    pub player: Rc<RefCell<Player<Mpv>>>,
+    pub player: RcPlayer,
     pub library: Rc<RefCell<Library>>,
     pub label_set: Rc<RefCell<LabelSet>>,
     event_handler: Rc<RefCell<EventHandler>>,
 }
 
 impl Runtime {
-    pub fn new() -> Runtime {
-        let mpv = Mpv::new().unwrap();
+    pub fn new(player: RcPlayer) -> Runtime {
         let settings = Settings::new();
         let library = Library::from_path(settings.metadata_path());
-        let player = Player::new(mpv);
         let label_set = LabelSet::new();
 
         let mut runtime = Runtime {
-            player: Rc::new(RefCell::new(player)),
+            player,
             library: Rc::new(RefCell::new(library)),
             label_set: Rc::new(RefCell::new(label_set)),
             event_handler: Default::default(),

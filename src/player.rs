@@ -12,6 +12,11 @@ pub const PROPERTIES: [PlayerProperty; 3] = [
     PlayerProperty::Pause,
 ];
 
+use mpv::Mpv;
+use std::cell::RefCell;
+use std::rc::Rc;
+pub type RcPlayer = Rc<RefCell<Player<Mpv>>>;
+
 pub struct Player<T> {
     mpv: T,
 }
