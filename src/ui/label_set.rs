@@ -23,3 +23,9 @@ impl LabelSet {
         self.text_contents.get(&label).unwrap()
     }
 }
+
+impl Default for LabelSet {
+    fn default() -> LabelSet {
+        LabelSet::new()
+    }
+}

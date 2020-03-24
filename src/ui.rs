@@ -4,8 +4,8 @@ mod label_set;
 mod main;
 mod player;
 mod search;
+pub mod selectors;
 
-use crate::player::Player;
 use crate::runtime::Runtime;
 use crate::ui::player::PlayerView;
 pub use application::ApplicationView;
@@ -14,26 +14,19 @@ use cursive::Cursive;
 pub use label::{Label, LABELS};
 pub use label_set::LabelSet;
 pub use main::MainView;
-use mpv::Mpv;
 pub use search::SearchView;
-use std::cell::RefCell;
-use std::rc::Rc;
 
-pub fn create_application(player: Rc<RefCell<Player<Mpv>>>) -> Cursive {
-    let runtime = Runtime::new(player);
+pub fn create_application(runtime: &Runtime) -> Cursive {
     let label_set = runtime.label_set().clone();
-    let song_path = "http://localhost:3000/song.mp3";
-    runtime.player().play(song_path);
-
     let mut app = Cursive::default();
-    app.set_user_data(runtime);
+    app.set_user_data(runtime.clone());
     app.set_autorefresh(true);
     app.add_layer(ApplicationView::new_with_name(&label_set));
     setup_global_callbacks(&mut app);
     app
 }
 
-pub fn setup_global_callbacks(app: &mut Cursive) {
+fn setup_global_callbacks(app: &mut Cursive) {
     app.add_global_callback('q', cb_quit_cursive);
     app.add_global_callback('/', cb_open_search);
     app.add_global_callback(Key::Right, cb_seek_forward);
@@ -57,18 +50,18 @@ fn cb_open_search(app: &mut Cursive) {
 
 fn cb_seek_forward(app: &mut Cursive) {
     app.with_user_data(|runtime: &mut Runtime| {
-        runtime.player().seek_forward();
+        runtime.player.borrow_mut().seek_forward();
     });
 }
 
 fn cb_seek_backward(app: &mut Cursive) {
     app.with_user_data(|runtime: &mut Runtime| {
-        runtime.player().seek_backward();
+        runtime.player.borrow_mut().seek_backward();
     });
 }
 
 fn cb_toggle_pause(app: &mut Cursive) {
     app.with_user_data(|runtime: &mut Runtime| {
-        runtime.player().toggle_pause();
+        runtime.player.borrow_mut().toggle_pause();
     });
 }

@@ -1,13 +1,21 @@
 use crate::player::PlayerProperty;
 use crate::runtime::Runtime;
-use crate::ui::{Label, LabelSet};
+use crate::ui::{selectors, Label, LabelSet};
+use cursive::views::ProgressBar;
+use cursive::Cursive;
 use mpv::events::simple::PropertyData;
 
-pub fn handle_property_change(property: &PlayerProperty, data: &PropertyData, runtime: &Runtime) {
+pub fn property_change_event(
+    property: &PlayerProperty,
+    data: &PropertyData,
+    runtime: &Runtime,
+    app: &mut Cursive,
+) {
     match property {
         PlayerProperty::Duration => {
             let text = property.parse_property_data(&data);
             copy_property_to_label(&Label::TotalTime, text, runtime);
+            update_progress_bar(runtime, app);
         }
 
         PlayerProperty::Elapsed => {
@@ -19,6 +27,10 @@ pub fn handle_property_change(property: &PlayerProperty, data: &PropertyData, ru
             update_playing_state(runtime);
         }
     }
+}
+
+fn update_progress_bar(runtime: &Runtime, app: &mut Cursive) {
+    app.call_on_name(selectors::PROGRESS, |view: &mut ProgressBar| {});
 }
 
 fn update_playing_state(runtime: &Runtime) {

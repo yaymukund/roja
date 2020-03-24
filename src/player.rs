@@ -42,11 +42,22 @@ where
         self.command("loadfile", &[path, "append"]);
     }
 
-    #[allow(dead_code)]
     pub fn elapsed(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Elapsed.as_str())
             .unwrap()
+    }
+
+    pub fn duration(&self) -> i64 {
+        self.mpv
+            .get_property(PlayerProperty::Duration.as_str())
+            .unwrap()
+    }
+
+    pub fn percent_complete(&self) -> usize {
+        let elapsed = self.elapsed() as f64;
+        let duration = self.duration() as f64;
+        (elapsed / duration * 100.0) as usize
     }
 
     pub fn seek(&self, seconds: i64, mode: SeekMode) {
