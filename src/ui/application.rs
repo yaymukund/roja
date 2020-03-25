@@ -15,17 +15,14 @@ impl ViewWrapper for ApplicationView {
 impl ApplicationView {
     pub const NAME: &'static str = "application";
 
-    pub fn new(label_set: &LabelSet) -> ApplicationView {
+    pub fn new(label_set: &LabelSet) -> NamedView<ApplicationView> {
         let view = LinearLayout::vertical()
             .child(PlayerView::new(&label_set))
-            .child(ResizedView::with_full_screen(MainView::new_with_name()))
-            .child(SearchView::new_with_name().full_width());
+            .child(ResizedView::with_full_screen(MainView::new()))
+            .child(SearchView::new().full_width());
 
-        ApplicationView { view }
-    }
-
-    pub fn new_with_name(label_set: &LabelSet) -> NamedView<ApplicationView> {
-        Self::new(&label_set).with_name(Self::NAME)
+        let application_view = ApplicationView { view };
+        application_view.with_name(Self::NAME)
     }
 
     pub fn focus_name(&mut self, name: impl Into<String>) -> Result<(), ()> {

@@ -13,12 +13,9 @@ impl ViewWrapper for MainView {
 impl MainView {
     pub const NAME: &'static str = "main";
 
-    pub fn new() -> MainView {
-        let view = LinearLayout::horizontal().child(DummyView).child(DummyView);
-        MainView { view }
-    }
-
-    pub fn new_with_name() -> NamedView<MainView> {
-        Self::new().with_name(Self::NAME)
+    pub fn new() -> NamedView<MainView> {
+        let view = LinearLayout::horizontal();
+        let main_view = MainView { view };
+        main_view.with_name(Self::NAME)
     }
 }

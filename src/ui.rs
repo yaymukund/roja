@@ -21,7 +21,7 @@ pub fn create_application(runtime: &Runtime) -> Cursive {
     let mut app = Cursive::default();
     app.set_user_data(runtime.clone());
     app.set_autorefresh(true);
-    app.add_layer(ApplicationView::new_with_name(&label_set));
+    app.add_layer(ApplicationView::new(&label_set));
     setup_global_callbacks(&mut app);
     app
 }

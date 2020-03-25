@@ -16,17 +16,14 @@ impl ViewWrapper for SearchView {
 impl SearchView {
     pub const NAME: &'static str = "search";
 
-    pub fn new() -> SearchView {
+    pub fn new() -> NamedView<SearchView> {
         let view = EditView::new()
             .disabled()
             .on_submit(cb_close_search)
             .on_edit(cb_submit_search);
 
-        SearchView { view }
-    }
-
-    pub fn new_with_name() -> NamedView<SearchView> {
-        Self::new().with_name(Self::NAME)
+        let search_view = SearchView { view };
+        search_view.with_name(Self::NAME)
     }
 
     pub fn clear(&mut self) {
