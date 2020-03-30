@@ -1,4 +1,4 @@
-use crate::ui::{LabelSet, MainView, PlayerView, SearchView};
+use crate::ui::{LabelSet, PlayerView, SearchView, TrackListView};
 use cursive::traits::View;
 use cursive::view::{Nameable, Resizable, Selector, ViewWrapper};
 use cursive::views::{LinearLayout, NamedView, ResizedView};
@@ -18,7 +18,7 @@ impl ApplicationView {
     pub fn new(label_set: &LabelSet) -> NamedView<ApplicationView> {
         let view = LinearLayout::vertical()
             .child(PlayerView::new(&label_set))
-            .child(ResizedView::with_full_screen(MainView::new()))
+            .child(ResizedView::with_full_screen(TrackListView::new()))
             .child(SearchView::new().full_width());
 
         let application_view = ApplicationView { view };

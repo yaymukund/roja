@@ -1,4 +1,4 @@
-use crate::ui::{ApplicationView, MainView};
+use crate::ui::{ApplicationView, TrackListView};
 use cursive::view::{Nameable, ViewWrapper};
 use cursive::views::{EditView, NamedView};
 use cursive::wrap_impl;
@@ -40,7 +40,7 @@ fn cb_close_search(app: &mut Cursive, search_term: &str) {
 
     app.call_on_name(SearchView::NAME, |v: &mut SearchView| v.disable());
     app.call_on_name(ApplicationView::NAME, |v: &mut ApplicationView| {
-        v.focus_name(MainView::NAME)
+        v.focus_name(TrackListView::NAME)
     });
 }
 

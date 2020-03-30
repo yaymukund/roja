@@ -1,9 +1,9 @@
 mod application;
 mod label;
-mod main;
 mod player;
 mod search;
 pub mod selectors;
+mod track_list;
 
 use crate::runtime::Runtime;
 use crate::ui::player::PlayerView;
@@ -11,8 +11,8 @@ pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
 pub use label::{Label, LabelSet, LABELS};
-pub use main::MainView;
 pub use search::SearchView;
+pub use track_list::TrackListView;
 
 pub fn create_application(runtime: &Runtime) -> Cursive {
     let label_set = runtime.label_set().clone();
