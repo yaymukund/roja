@@ -10,7 +10,7 @@ use crate::player::{Player, RcPlayer};
 use mpv::Mpv;
 use player_events::handle_player_event;
 use runtime::Runtime;
-use ui::create_application;
+use ui::Roja;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -19,16 +19,16 @@ fn main() {
     env_logger::init();
     let player = init_player();
     let runtime = init_runtime(&player);
-    let mut app = create_application(&runtime);
+    let mut roja = Roja::new(&runtime);
 
     start_player(&player);
 
-    while app.is_running() {
+    while roja.is_running() {
         if let Some(event) = player.borrow().poll_events() {
-            handle_player_event(event, &runtime, &mut app);
+            handle_player_event(event, &runtime, &mut roja);
         }
 
-        app.step();
+        roja.step();
     }
 }
 

@@ -1,17 +1,15 @@
 use crate::runtime::Runtime;
-use crate::ui::{selectors, Label, LabelSet};
+use crate::ui::{Label, LabelSet, Roja};
 use crate::util::format_duration;
-use cursive::views::ProgressBar;
-use cursive::Cursive;
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
-pub fn handle_player_event(event: MpvEvent, runtime: &Runtime, app: &mut Cursive) {
+pub fn handle_player_event(event: MpvEvent, runtime: &Runtime, roja: &mut Roja) {
     match event {
         MpvEvent::PropertyChange {
             name: "time-pos",
             change: PropertyData::Int64(new_time_pos),
             ..
-        } => handle_time_pos_event(new_time_pos, &runtime, app),
+        } => handle_time_pos_event(new_time_pos, &runtime, roja),
 
         MpvEvent::PropertyChange {
             name: "duration",
@@ -25,10 +23,10 @@ pub fn handle_player_event(event: MpvEvent, runtime: &Runtime, app: &mut Cursive
     }
 }
 
-fn handle_time_pos_event(new_time_pos: i64, runtime: &Runtime, app: &mut Cursive) {
+fn handle_time_pos_event(new_time_pos: i64, runtime: &Runtime, roja: &mut Roja) {
     let elapsed_time = format_duration(new_time_pos);
     copy_property_to_label(&Label::ElapsedTime, elapsed_time, runtime);
-    update_progress_value(runtime, app);
+    update_progress_value(runtime, roja);
 }
 
 fn handle_duration_event(new_duration: i64, runtime: &Runtime) {
@@ -55,13 +53,9 @@ fn handle_pause_event(runtime: &Runtime) {
     );
 }
 
-fn update_progress_value(runtime: &Runtime, app: &mut Cursive) {
-    let player = runtime.player.borrow();
-    let percent = player.percent_complete();
-
-    app.call_on_name(selectors::PROGRESS, |view: &mut ProgressBar| {
-        view.set_value(percent);
-    });
+fn update_progress_value(runtime: &Runtime, roja: &mut Roja) {
+    let percent_complete = runtime.player.borrow().percent_complete();
+    roja.update_progress_value(percent_complete);
 }
 
 fn update_property(label_set: &LabelSet, label: &Label, text: String) {
