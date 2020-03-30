@@ -1,6 +1,5 @@
 mod application;
 mod label;
-mod label_set;
 mod main;
 mod player;
 mod search;
@@ -11,8 +10,7 @@ use crate::ui::player::PlayerView;
 pub use application::ApplicationView;
 use cursive::event::Key;
 use cursive::Cursive;
-pub use label::{Label, LABELS};
-pub use label_set::LabelSet;
+pub use label::{Label, LabelSet, LABELS};
 pub use main::MainView;
 pub use search::SearchView;
 
