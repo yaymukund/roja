@@ -115,6 +115,7 @@ type IndexCallback = Rc<dyn Fn(&mut Cursive, usize, usize)>;
 /// ```
 pub struct TableView<T: TableViewItem<H>, H: Eq + Hash + Copy + Clone + 'static> {
     enabled: bool,
+    events_enabled: bool,
     scrollbase: ScrollBase,
     last_size: Vec2,
 
@@ -149,6 +150,7 @@ impl<T: TableViewItem<H>, H: Eq + Hash + Copy + Clone + 'static> TableView<T, H>
     pub fn new() -> Self {
         Self {
             enabled: true,
+            events_enabled: true,
             scrollbase: ScrollBase::new(),
             last_size: Vec2::new(0, 0),
 
@@ -263,6 +265,22 @@ impl<T: TableViewItem<H>, H: Eq + Hash + Copy + Clone + 'static> TableView<T, H>
     /// Returns `true` if this view is enabled.
     pub fn is_enabled(&self) -> bool {
         self.enabled
+    }
+
+    pub fn disable_events(&mut self) {
+        self.events_enabled = false;
+    }
+
+    pub fn enable_events(&mut self) {
+        self.events_enabled = true;
+    }
+
+    pub fn set_events_enabled(&mut self, events_enabled: bool) {
+        self.events_enabled = events_enabled;
+    }
+
+    pub fn is_events_enabled(&self) -> bool {
+        self.events_enabled
     }
 
     /// Sets a callback to be used when a selected column is sorted by
@@ -778,7 +796,7 @@ impl<T: TableViewItem<H> + 'static, H: Eq + Hash + Copy + Clone + 'static> View
     }
 
     fn on_event(&mut self, event: Event) -> EventResult {
-        if !self.enabled {
+        if !self.enabled || !self.events_enabled {
             return EventResult::Ignored;
         }
 
