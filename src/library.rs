@@ -1,12 +1,27 @@
-mod folder;
-mod track;
-
-use folder::Folder;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
-use std::path::Path;
-use track::Track;
+use std::path::{Path, PathBuf};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Folder {
+    id: usize,
+    created_at: usize,
+    path: PathBuf,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Track {
+    id: usize,
+    title: String,
+    album: String,
+    artist: String,
+    date: String,
+    track_number: String,
+    duration: String,
+    path: PathBuf,
+    folder_id: usize,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Library {
