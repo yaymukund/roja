@@ -267,18 +267,22 @@ impl<T: TableViewItem<H>, H: Eq + Hash + Copy + Clone + 'static> TableView<T, H>
         self.enabled
     }
 
+    /// Disables event handling
     pub fn disable_events(&mut self) {
         self.events_enabled = false;
     }
 
+    /// Enables event handling
     pub fn enable_events(&mut self) {
         self.events_enabled = true;
     }
 
+    /// Manually set whether this table should handle events
     pub fn set_events_enabled(&mut self, events_enabled: bool) {
         self.events_enabled = events_enabled;
     }
 
+    /// Returns true if event handling is enabled
     pub fn is_events_enabled(&self) -> bool {
         self.events_enabled
     }

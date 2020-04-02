@@ -1,4 +1,4 @@
-mod cursive_table_view;
+pub mod cursive_table_view;
 mod library;
 mod player;
 mod player_events;
