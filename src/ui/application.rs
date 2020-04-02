@@ -1,6 +1,6 @@
 use crate::ui::{LabelSet, PlayerView, SearchView, TrackListView};
 use cursive::traits::View;
-use cursive::view::{Nameable, Resizable, Selector, ViewWrapper};
+use cursive::view::{Nameable, Resizable, Selector, SizeConstraint, ViewWrapper};
 use cursive::views::{LinearLayout, NamedView, ResizedView};
 use cursive::wrap_impl;
 
@@ -18,7 +18,11 @@ impl ApplicationView {
     pub fn new(label_set: &LabelSet) -> NamedView<ApplicationView> {
         let view = LinearLayout::vertical()
             .child(PlayerView::new(&label_set))
-            .child(ResizedView::with_full_screen(TrackListView::new()))
+            .child(ResizedView::new(
+                SizeConstraint::Fixed(20),
+                SizeConstraint::Full,
+                TrackListView::new(),
+            ))
             .child(SearchView::new().full_width());
 
         let application_view = ApplicationView { view };

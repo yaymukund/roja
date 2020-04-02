@@ -1,3 +1,4 @@
+mod cursive_table_view;
 mod library;
 mod player;
 mod player_events;
@@ -19,7 +20,8 @@ fn main() {
     env_logger::init();
     let player = init_player();
     let runtime = init_runtime(&player);
-    let mut roja = Roja::new(&runtime);
+    let folders = runtime.library.borrow().folders.clone();
+    let mut roja = Roja::new(&runtime, folders);
 
     start_player(&player);
 

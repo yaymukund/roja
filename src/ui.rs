@@ -5,6 +5,7 @@ mod search;
 pub mod selectors;
 mod track_list;
 
+use crate::library::Folder;
 use crate::runtime::Runtime;
 use crate::ui::player::PlayerView;
 pub use application::ApplicationView;
@@ -13,14 +14,14 @@ use cursive::views::ProgressBar;
 use cursive::Cursive;
 pub use label::{Label, LabelSet, LABELS};
 pub use search::SearchView;
-pub use track_list::TrackListView;
+pub use track_list::{FolderTable, TrackListView};
 
 pub struct Roja {
     siv: Cursive,
 }
 
 impl Roja {
-    pub fn new(runtime: &Runtime) -> Roja {
+    pub fn new(runtime: &Runtime, folders: Vec<Folder>) -> Roja {
         let mut siv = Cursive::default();
         siv.set_user_data(runtime.clone());
         siv.set_autorefresh(true);
@@ -35,7 +36,17 @@ impl Roja {
         siv.add_global_callback(Key::Left, Self::cb_seek_backward);
         siv.add_global_callback('c', Self::cb_toggle_pause);
 
-        Roja { siv }
+        let mut roja = Roja { siv };
+        roja.set_folders(folders);
+
+        roja
+    }
+
+    fn set_folders(&mut self, folders: Vec<Folder>) {
+        self.siv
+            .call_on_name(TrackListView::NAME, |v: &mut FolderTable| {
+                v.set_items(folders);
+            });
     }
 
     fn cb_quit(siv: &mut Cursive) {

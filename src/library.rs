@@ -1,13 +1,14 @@
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
-#[derive(Serialize, Deserialize, Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Folder {
     id: usize,
-    created_at: usize,
-    path: PathBuf,
+    pub created_at: usize,
+    pub path: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,7 +27,7 @@ pub struct Track {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Library {
     tracks: Vec<Track>,
-    folders: Vec<Folder>,
+    pub folders: Vec<Folder>,
 }
 
 impl Library {
