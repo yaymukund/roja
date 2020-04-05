@@ -5,11 +5,12 @@ authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+crossterm = "0.17"
 env_logger = "0.7"
 log = "0.4"
 mpv = { git = "https://github.com/yaymukund/mpv-rs" }
-serde = { version = "1.0.105", features = ["derive"] }
-serde_json = "1.0.48"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 structopt = "0.3.12"
 xdg = "^2.1"
 
