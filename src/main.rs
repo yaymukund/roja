@@ -2,35 +2,28 @@ mod library;
 mod player;
 mod runtime;
 mod settings;
+mod ui;
 mod util;
 
-use crate::player::{Player, RcPlayer};
-use mpv::Mpv;
-use runtime::Runtime;
+use std::{thread, time};
 
-use std::cell::RefCell;
-use std::rc::Rc;
+use crate::runtime::init_runtime;
+use crate::ui::{handle_ui_events, teardown_ui};
 
 fn main() {
     env_logger::init();
-    let player = init_player();
-    let runtime = init_runtime(&player);
-    let folders = runtime.library.borrow().folders.clone();
-    start_player(&player);
-    loop {}
-}
+    let runtime = init_runtime();
 
-fn init_player() -> RcPlayer {
-    let mpv = Mpv::new().unwrap();
-    let player = Player::new(mpv);
-    Rc::new(RefCell::new(player))
-}
+    loop {
+        thread::sleep(time::Duration::from_millis(50));
 
-fn init_runtime(player: &RcPlayer) -> Runtime {
-    let player = player.clone();
-    Runtime::new(player)
-}
+        if runtime.borrow().stopped {
+            break;
+        }
 
-fn start_player(player: &RcPlayer) {
-    player.borrow().play("http://localhost:3000/song.mp3");
+        handle_ui_events(runtime.clone());
+        runtime.borrow().ui.flush();
+    }
+
+    teardown_ui();
 }
