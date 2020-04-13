@@ -1,7 +1,6 @@
-const SECS_IN_HOUR: i64 = 3600;
 const SECS_IN_MIN: i64 = 60;
 
-fn pad(unit: i64) -> String {
+fn pad_zero(unit: i64) -> String {
     if unit < 10 {
         format!("0{}", unit)
     } else {
@@ -12,15 +11,14 @@ fn pad(unit: i64) -> String {
 pub fn format_duration(secs: i64) -> String {
     let negative = if secs < 0 { "-" } else { "" };
     let secs = if secs < 0 { -secs } else { secs };
-    let hours = secs / SECS_IN_HOUR;
-    let mins = (secs - (hours * SECS_IN_HOUR)) / SECS_IN_MIN;
-    let secs = secs - (hours * SECS_IN_HOUR) - (mins * SECS_IN_MIN);
+    let mins = secs / SECS_IN_MIN;
+    let secs = secs - (mins * SECS_IN_MIN);
 
-    if hours == 0 {
-        format!("{}{}:{}", negative, pad(mins), pad(secs))
-    } else {
-        format!("{}{}:{}:{}", negative, pad(hours), pad(mins), pad(secs))
-    }
+    // truncate mins to 3 characters, because what song is >1000 minutes?
+    let mut mins = mins.to_string();
+    mins.truncate(3);
+
+    format!("{}{}:{}", negative, mins, pad_zero(secs))
 }
 
 #[cfg(test)]

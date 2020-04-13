@@ -5,14 +5,14 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct Folder {
+pub(crate) struct Folder {
     id: usize,
-    pub created_at: usize,
-    pub path: PathBuf,
+    pub(crate) created_at: usize,
+    pub(crate) path: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Track {
+pub(crate) struct Track {
     id: usize,
     title: String,
     album: String,
@@ -25,13 +25,13 @@ pub struct Track {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Library {
+pub(crate) struct Library {
     tracks: Vec<Track>,
-    pub folders: Vec<Folder>,
+    pub(crate) folders: Vec<Folder>,
 }
 
 impl Library {
-    pub fn from_path<P>(path: P) -> Library
+    pub(crate) fn from_path<P>(path: P) -> Library
     where
         P: AsRef<Path>,
     {

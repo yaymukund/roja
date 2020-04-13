@@ -1,4 +1,4 @@
-pub struct Position {
+pub(crate) struct Position {
     x: u16,
     y: u16,
 }
@@ -9,15 +9,15 @@ impl From<(u16, u16)> for Position {
     }
 }
 
-pub struct Canvas {
-    pub x: u16,
-    pub y: u16,
+pub(crate) struct Canvas {
+    pub(crate) x: u16,
+    pub(crate) y: u16,
     width: u16,
     height: u16,
 }
 
 impl Canvas {
-    pub fn new(x: u16, y: u16, width: u16, height: u16) -> Canvas {
+    pub(crate) fn new(x: u16, y: u16, width: u16, height: u16) -> Canvas {
         Canvas {
             x,
             y,
@@ -26,13 +26,13 @@ impl Canvas {
         }
     }
 
-    // pub fn print(&self, text: &str) {
+    // pub(crate) fn print(&self, text: &str) {
     //     queue!(stdout(), MoveTo(self.x, self.y), Print(text)).unwrap_or_else(|err| {
     //         println!("Error drawing {}", err);
     //     });
     // }
 
-    // pub fn print_line(&self, text: &str) {
+    // pub(crate) fn print_line(&self, text: &str) {
     //     queue!(
     //         stdout(),
     //         MoveTo(self.pos.x, self.pos.y),

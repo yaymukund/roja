@@ -4,14 +4,14 @@ use structopt::StructOpt;
 // A command line music player written in Rust.
 #[derive(StructOpt, Debug)]
 #[structopt()]
-pub struct Cli {
+pub(crate) struct Cli {
     // Path to the configuration file.
     #[structopt(short = "c", long = "config", parse(from_os_str))]
-    pub config_path: Option<PathBuf>,
+    pub(crate) config_path: Option<PathBuf>,
 }
 
 impl Cli {
-    pub fn from_args() -> Cli {
+    pub(crate) fn from_args() -> Cli {
         <Cli as StructOpt>::from_args()
     }
 }

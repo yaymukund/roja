@@ -1,4 +1,4 @@
-pub enum SeekMode {
+pub(crate) enum SeekMode {
     Relative,
     Absolute,
     // AbsolutePercent,
@@ -8,7 +8,7 @@ pub enum SeekMode {
 }
 
 impl SeekMode {
-    pub fn as_str(&self) -> &str {
+    pub(crate) fn as_str(&self) -> &str {
         match self {
             SeekMode::Relative => "relative",
             SeekMode::Absolute => "absolute",

@@ -4,14 +4,14 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
 #[derive(Deserialize, Debug)]
-pub struct Config {
-    pub music_library_path: PathBuf,
-    pub metadata_path: PathBuf,
-    pub metadata_index_path: PathBuf,
+pub(crate) struct Config {
+    pub(crate) music_library_path: PathBuf,
+    pub(crate) metadata_path: PathBuf,
+    pub(crate) metadata_index_path: PathBuf,
 }
 
 impl Config {
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Config {
+    pub(crate) fn from_path<P: AsRef<Path>>(path: P) -> Config {
         let file = File::open(&path).unwrap_or_else(move |_| {
             panic!(format!("Could not open {}", path.as_ref().display()));
         });

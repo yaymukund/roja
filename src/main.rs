@@ -8,7 +8,7 @@ mod util;
 use std::{thread, time};
 
 use crate::runtime::init_runtime;
-use crate::ui::{init_ui, poll_crossterm_event, teardown_ui};
+use crate::ui::{init_ui, teardown_ui};
 
 fn main() {
     env_logger::init();
@@ -22,9 +22,12 @@ fn main() {
             break;
         }
 
-        if let Some(event) = poll_crossterm_event() {
-            ui.on_ui_event(event);
-            ui.draw();
+        if let Some(event) = runtime.borrow().player.poll_event() {
+            ui.on_external_event(event);
+        }
+
+        if let Some(event) = ui.poll_crossterm_event() {
+            ui.on_external_event(event);
         }
 
         ui.flush();
