@@ -10,4 +10,5 @@ pub(crate) struct Canvas {
 
 pub(crate) trait UIComponent {
     fn on_event(&self, event: &UIEvent, runtime: RcRuntime);
+    fn after_event(&self, event: &UIEvent, runtime: RcRuntime);
 }

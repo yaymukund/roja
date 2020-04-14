@@ -20,4 +20,6 @@ impl UIComponent for KeyboardShortcuts {
             _ => {}
         }
     }
+
+    fn after_event(&self, _event: &UIEvent, _runtime: RcRuntime) {}
 }

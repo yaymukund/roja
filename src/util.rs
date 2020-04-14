@@ -14,9 +14,9 @@ pub fn format_duration(secs: i64) -> String {
     let mins = secs / SECS_IN_MIN;
     let secs = secs - (mins * SECS_IN_MIN);
 
-    // truncate mins to 3 characters, because what song is >1000 minutes?
+    // truncate mins to 2 characters, because what song is >99 minutes?
     let mut mins = mins.to_string();
-    mins.truncate(3);
+    mins.truncate(2);
 
     format!("{}{}:{}", negative, mins, pad_zero(secs))
 }

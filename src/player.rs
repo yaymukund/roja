@@ -69,7 +69,12 @@ impl Player {
     pub(crate) fn percent_complete(&self) -> u16 {
         let elapsed = self.elapsed() as f64;
         let duration = self.duration() as f64;
-        (elapsed / duration * 100.0) as u16
+        let percent_complete = elapsed / duration * 100.0;
+        if percent_complete > 0.0 {
+            percent_complete as u16
+        } else {
+            0
+        }
     }
 
     pub(crate) fn seek(&self, seconds: i64, mode: SeekMode) {
@@ -85,13 +90,13 @@ impl Player {
     }
 
     pub(crate) fn paused(&self) -> bool {
-        let paused: String = self.mpv.get_property("pause").unwrap();
-        paused == "yes"
+        let pause: String = self.mpv.get_property("pause").unwrap();
+        pause == "yes"
     }
 
-    pub(crate) fn core_idle(&self) -> bool {
-        let core_idle: String = self.mpv.get_property("core-idle").unwrap();
-        core_idle == "yes"
+    pub(crate) fn idle_active(&self) -> bool {
+        let idle_active: String = self.mpv.get_property("idle-active").unwrap();
+        idle_active == "yes"
     }
 
     pub(crate) fn toggle_pause(&self) {

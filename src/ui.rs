@@ -70,6 +70,10 @@ impl UI {
         for component in self.components.iter() {
             component.on_event(&event, self.runtime.clone());
         }
+
+        for component in self.components.iter() {
+            component.after_event(&event, self.runtime.clone());
+        }
     }
 
     fn init_components(&mut self) {
