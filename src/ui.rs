@@ -28,10 +28,10 @@ impl UI {
             runtime,
             components: Default::default(),
             canvas: Canvas {
-                x: 0,
-                y: 0,
-                cols,
-                rows,
+                x1: 0,
+                y1: 0,
+                x2: cols - 1,
+                y2: rows - 1,
             },
         };
         ui.init_components();
@@ -77,16 +77,25 @@ impl UI {
     }
 
     fn init_components(&mut self) {
+        let library_width = (self.canvas.width() * 30) / 100;
         let keyboard_shortcuts = components::KeyboardShortcuts::new();
         let dashboard = components::Dashboard::new(Canvas {
-            x: 1,
-            y: self.canvas.rows - 1,
-            rows: 1,
-            cols: self.canvas.cols - 2,
+            x1: self.canvas.x1,
+            y1: self.canvas.y2,
+            x2: self.canvas.x2,
+            y2: self.canvas.y2,
+        });
+
+        let folder_list = components::FolderList::new(Canvas {
+            x1: self.canvas.x1,
+            y1: self.canvas.y1,
+            x2: self.canvas.x1 + library_width,
+            y2: self.canvas.y2 - 1,
         });
 
         self.components.push(Box::new(dashboard));
-        self.components.push(Box::new(keyboard_shortcuts))
+        self.components.push(Box::new(keyboard_shortcuts));
+        self.components.push(Box::new(folder_list));
     }
 }
 

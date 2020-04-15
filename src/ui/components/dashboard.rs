@@ -13,6 +13,7 @@ pub(crate) struct Dashboard {
 // following:
 //
 // I CCCCCC/TTTTTT PPPPPPPPP->
+// > -12:34/-23:45 ===--------
 //
 // Where:
 //
@@ -27,27 +28,34 @@ impl Dashboard {
 
     fn draw(&self, player: &Player) {
         self.update_indicator(player);
-        helpers::write_at(self.canvas.x + 7, self.canvas.y, "/");
+        helpers::write_at(self.canvas.x1 + 8, self.canvas.y1, "/");
         self.update_current_time(0);
         self.update_total_time(0);
     }
 
     fn update_indicator(&self, player: &Player) {
-        helpers::write_at(self.canvas.x, self.canvas.y, indicator(player));
+        let indicator = if player.paused() {
+            "|"
+        } else if player.idle_active() {
+            " "
+        } else {
+            "▶"
+        };
+        helpers::write_at(self.canvas.x1, self.canvas.y1, indicator);
     }
 
     fn update_current_time(&self, current_time: i64) {
-        let current_time = format!("{:>5}", format_duration(current_time));
-        helpers::write_at(self.canvas.x + 2, self.canvas.y, &current_time);
+        let current_time = format!("{:>6}", format_duration(current_time));
+        helpers::write_at(self.canvas.x1 + 2, self.canvas.y1, &current_time);
     }
 
     fn update_total_time(&self, total_time: i64) {
-        let total_time = format!("{:<5}", format_duration(total_time));
-        helpers::write_at(self.canvas.x + 8, self.canvas.y, &total_time);
+        let total_time = format!("{:<6}", format_duration(total_time));
+        helpers::write_at(self.canvas.x1 + 9, self.canvas.y1, &total_time);
     }
 
     fn update_progress(&self, player: &Player) {
-        let cols = self.canvas.cols - 16;
+        let cols = self.canvas.width() - 16;
         let percent_complete = player.percent_complete();
         let filled = (cols * percent_complete) / 100;
 
@@ -55,12 +63,12 @@ impl Dashboard {
         let filled_bar = style::style("━".repeat(filled as usize)).with(style::Color::DarkMagenta);
         let empty_bar = style::style("─".repeat(empty as usize)).with(style::Color::Green);
 
-        helpers::write_styled_at(self.canvas.x + 16, self.canvas.y, filled_bar);
-        helpers::write_styled_at(self.canvas.x + 16 + filled, self.canvas.y, empty_bar);
+        helpers::write_styled_at(self.canvas.x1 + 16, self.canvas.y1, filled_bar);
+        helpers::write_styled_at(self.canvas.x1 + 16 + filled, self.canvas.y1, empty_bar);
     }
 
     fn disabled(&self) -> bool {
-        self.canvas.cols < 26
+        self.canvas.width() < 26
     }
 }
 
@@ -101,15 +109,5 @@ impl UIComponent for Dashboard {
             UIEvent::TogglePause => self.update_indicator(player),
             _ => {}
         }
-    }
-}
-
-fn indicator(player: &Player) -> &str {
-    if player.paused() {
-        "|"
-    } else if player.idle_active() {
-        " "
-    } else {
-        "▶"
     }
 }

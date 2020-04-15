@@ -11,6 +11,12 @@ pub(crate) struct Folder {
     pub(crate) path: PathBuf,
 }
 
+impl Folder {
+    pub(crate) fn path_str(&self) -> &str {
+        self.path.to_str().expect("could not turn path into string")
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct Track {
     id: usize,
