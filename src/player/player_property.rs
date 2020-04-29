@@ -2,7 +2,7 @@ use core::str::FromStr;
 use mpv::Format;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub(crate) enum PlayerProperty {
+pub enum PlayerProperty {
     Duration,
     Elapsed,
     Pause,
@@ -11,7 +11,7 @@ pub(crate) enum PlayerProperty {
 use PlayerProperty::*;
 
 impl PlayerProperty {
-    pub(crate) fn as_str(&self) -> &str {
+    pub fn as_str(&self) -> &str {
         match self {
             Elapsed => "time-pos",
             Duration => "duration",
@@ -19,7 +19,7 @@ impl PlayerProperty {
         }
     }
 
-    pub(crate) fn player_format(&self) -> Format {
+    pub fn player_format(&self) -> Format {
         match self {
             Elapsed => Format::Int64,
             Duration => Format::Int64,
@@ -31,7 +31,7 @@ impl PlayerProperty {
 impl FromStr for PlayerProperty {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<PlayerProperty, Self::Err> {
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "time-pos" => Ok(Elapsed),
             "duration" => Ok(Duration),

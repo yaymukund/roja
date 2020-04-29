@@ -1,24 +1,20 @@
-mod player_property;
-mod seek_mode;
-
 use mpv::events::simple::Event as MpvEvent;
-pub(crate) use player_property::PlayerProperty;
-use seek_mode::SeekMode;
+use mpv::Mpv;
 
-pub(crate) const PROPERTIES: [PlayerProperty; 3] = [
+use super::player_property::PlayerProperty;
+
+pub const PROPERTIES: [PlayerProperty; 3] = [
     PlayerProperty::Elapsed,
     PlayerProperty::Duration,
     PlayerProperty::Pause,
 ];
 
-use mpv::Mpv;
-
-pub(crate) struct Player {
+pub struct Player {
     mpv: Mpv,
 }
 
 impl Player {
-    pub(crate) fn new() -> Player {
+    pub fn new() -> Self {
         let mpv = Mpv::new().expect("could not initialize mpv instance");
 
         // Does what it says on the tin. Copied from the example.
@@ -45,28 +41,28 @@ impl Player {
         Player { mpv }
     }
 
-    pub(crate) fn play(&self, path: &str) {
+    pub fn play(&self, path: &str) {
         self.command("loadfile", &[path]);
     }
 
     #[allow(dead_code)]
-    pub(crate) fn append(&self, path: &str) {
+    pub fn append(&self, path: &str) {
         self.command("loadfile", &[path, "append"]);
     }
 
-    pub(crate) fn elapsed(&self) -> i64 {
+    pub fn elapsed(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Elapsed.as_str())
             .unwrap()
     }
 
-    pub(crate) fn duration(&self) -> i64 {
+    pub fn duration(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Duration.as_str())
             .unwrap()
     }
 
-    pub(crate) fn percent_complete(&self) -> u16 {
+    pub fn percent_complete(&self) -> u16 {
         let elapsed = self.elapsed() as f64;
         let duration = self.duration() as f64;
         let percent_complete = elapsed / duration * 100.0;
@@ -77,34 +73,30 @@ impl Player {
         }
     }
 
-    pub(crate) fn seek(&self, seconds: i64, mode: SeekMode) {
-        self.command("seek", &[&seconds.to_string(), mode.as_str()]);
+    pub fn seek_forward(&self) {
+        self.mpv.seek_forward(5.0).expect("couldn't seek forward");
     }
 
-    pub(crate) fn seek_forward(&self) {
-        self.seek(5, SeekMode::Relative);
+    pub fn seek_backward(&self) {
+        self.mpv.seek_backward(5.0).expect("couldn't seek backward");
     }
 
-    pub(crate) fn seek_backward(&self) {
-        self.seek(-5, SeekMode::Relative);
-    }
-
-    pub(crate) fn paused(&self) -> bool {
+    pub fn paused(&self) -> bool {
         let pause: String = self.mpv.get_property("pause").unwrap();
         pause == "yes"
     }
 
-    pub(crate) fn idle_active(&self) -> bool {
+    pub fn idle_active(&self) -> bool {
         let idle_active: String = self.mpv.get_property("idle-active").unwrap();
         idle_active == "yes"
     }
 
-    pub(crate) fn toggle_pause(&self) {
+    pub fn toggle_pause(&self) {
         let next = if self.paused() { "no" } else { "yes" };
         self.mpv.set_property("pause", next).unwrap();
     }
 
-    pub(crate) fn poll_event(&self) -> Option<MpvEvent> {
+    pub fn wait_event(&self) -> Option<MpvEvent> {
         if let Some(Ok(event)) = unsafe { self.mpv.wait_event(0.0) } {
             Some(event)
         } else {

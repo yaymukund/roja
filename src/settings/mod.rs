@@ -4,7 +4,7 @@ mod cli;
 use cli::Cli;
 use std::path::PathBuf;
 
-pub(crate) struct Settings {
+pub struct Settings {
     cli: Cli,
     config: Config,
     xdg: xdg::BaseDirectories,
@@ -13,7 +13,7 @@ pub(crate) struct Settings {
 impl Settings {
     const CONFIG_PATH: &'static str = "config.json";
 
-    pub(crate) fn new() -> Settings {
+    pub fn new() -> Self {
         let xdg =
             xdg::BaseDirectories::with_prefix("roja").expect("Could not initialize directories");
 
@@ -30,7 +30,7 @@ impl Settings {
         }
     }
 
-    pub(crate) fn metadata_path(&self) -> &PathBuf {
+    pub fn metadata_path(&self) -> &PathBuf {
         &self.config.metadata_path
     }
 }

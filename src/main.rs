@@ -1,37 +1,38 @@
+mod component;
 mod library;
 mod player;
-mod runtime;
 mod settings;
 mod ui;
 mod util;
 
 use std::{thread, time};
 
-use crate::runtime::init_runtime;
-use crate::ui::{init_ui, teardown_ui};
+use ui::UI;
 
 fn main() {
     env_logger::init();
-    let runtime = init_runtime();
-    let ui = init_ui(runtime.clone());
+
+    let mut ui = init_ui();
+    ui.draw();
 
     loop {
-        thread::sleep(time::Duration::from_millis(50));
+        thread::sleep(time::Duration::from_millis(10));
+        ui.tick();
 
-        if runtime.borrow().stopped {
+        if ui.stopped() {
             break;
         }
-
-        if let Some(event) = runtime.borrow().player.poll_event() {
-            ui.on_external_event(event);
-        }
-
-        if let Some(event) = ui.poll_crossterm_event() {
-            ui.on_external_event(event);
-        }
-
-        ui.flush();
     }
+}
 
-    teardown_ui();
+fn init_ui() -> UI {
+    let mut ui = UI::default();
+    let player = player::Player::new();
+    let terminal = component::Terminal::new();
+
+    player.play("http://localhost:3000/song.mp3");
+
+    ui.register(player);
+    ui.register(terminal);
+    ui
 }

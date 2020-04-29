@@ -1,9 +1,8 @@
-use std::convert::TryFrom;
-
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent};
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
-pub(crate) enum UIEvent {
+#[derive(PartialEq)]
+pub enum Event {
     Draw,
 
     // Keyboard Input
@@ -16,46 +15,46 @@ pub(crate) enum UIEvent {
     ChangeTotalTime(i64),
     ChangeCurrentTime(i64),
     ChangeIndicator,
+
+    // other
+    UnknownMpvEvent,
+    UnknownCrosstermEvent,
 }
 
-impl<'a> TryFrom<MpvEvent<'a>> for UIEvent {
-    type Error = &'static str;
-
-    fn try_from(mpv_event: MpvEvent) -> Result<Self, Self::Error> {
+impl<'a> From<MpvEvent<'a>> for Event {
+    fn from(mpv_event: MpvEvent) -> Self {
         match mpv_event {
             MpvEvent::PropertyChange {
                 name: "time-pos",
                 change: PropertyData::Int64(new_time_pos),
                 ..
-            } => Ok(UIEvent::ChangeCurrentTime(new_time_pos)),
+            } => Event::ChangeCurrentTime(new_time_pos),
 
             MpvEvent::PropertyChange {
                 name: "duration",
                 change: PropertyData::Int64(new_duration),
                 ..
-            } => Ok(UIEvent::ChangeTotalTime(new_duration)),
+            } => Event::ChangeTotalTime(new_duration),
 
-            MpvEvent::PropertyChange { name: "pause", .. } => Ok(UIEvent::ChangeIndicator),
+            MpvEvent::PropertyChange { name: "pause", .. } => Event::ChangeIndicator,
 
-            _ => Err("MPV event does not map to UI event"),
+            _ => Event::UnknownMpvEvent,
         }
     }
 }
 
-impl TryFrom<CrosstermEvent> for UIEvent {
-    type Error = &'static str;
-
-    fn try_from(crossterm_event: CrosstermEvent) -> Result<Self, Self::Error> {
+impl From<CrosstermEvent> for Event {
+    fn from(crossterm_event: CrosstermEvent) -> Self {
         if let CrosstermEvent::Key(KeyEvent { code, modifiers: _ }) = crossterm_event {
             match code {
-                KeyCode::Left => Ok(UIEvent::SeekBackward),
-                KeyCode::Right => Ok(UIEvent::SeekForward),
-                KeyCode::Char('c') => Ok(UIEvent::TogglePause),
-                KeyCode::Char('q') => Ok(UIEvent::Quit),
-                _ => Err("Unrecognized keyboard event"),
+                KeyCode::Left => Event::SeekBackward,
+                KeyCode::Right => Event::SeekForward,
+                KeyCode::Char('c') => Event::TogglePause,
+                KeyCode::Char('q') => Event::Quit,
+                _ => Event::UnknownCrosstermEvent,
             }
         } else {
-            Err("Unrecognized Crossterm event")
+            Event::UnknownCrosstermEvent
         }
     }
 }
