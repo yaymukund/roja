@@ -9,6 +9,8 @@ pub enum Event {
     Quit,
     SeekBackward,
     SeekForward,
+    MoveDown,
+    MoveUp,
     TogglePause,
 
     // MPV Events
@@ -49,6 +51,8 @@ impl From<CrosstermEvent> for Event {
             match code {
                 KeyCode::Left => Event::SeekBackward,
                 KeyCode::Right => Event::SeekForward,
+                KeyCode::Down => Event::MoveDown,
+                KeyCode::Up => Event::MoveUp,
                 KeyCode::Char('c') => Event::TogglePause,
                 KeyCode::Char('q') => Event::Quit,
                 _ => Event::UnknownCrosstermEvent,

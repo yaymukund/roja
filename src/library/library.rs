@@ -3,7 +3,6 @@ use std::path::Path;
 
 pub struct Library {
     store: Store,
-    selected_index: usize,
 }
 
 impl Library {
@@ -13,7 +12,6 @@ impl Library {
     {
         Self {
             store: Store::from_path(path),
-            selected_index: 0,
         }
     }
 

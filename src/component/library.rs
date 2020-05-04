@@ -1,13 +1,40 @@
+use std::convert::TryInto;
+
 use super::{List, ListItem};
 use crate::library::{Folder, Library};
 use crate::ui::{Event, Listener, State};
 
 impl Listener for Library {
     fn on_event(&self, event: &Event, state: &mut State) {
-        let renderer = List::new(point!(0, 0), state.cols() / 3, state.rows() - 1, 0, 0);
+        let selected_index: u16 = state.library_selected_index().try_into().unwrap();
+        let renderer = List::new(
+            point!(0, 0),
+            state.cols() / 3,
+            state.rows() - 1,
+            0,
+            selected_index,
+        );
 
         match *event {
             Event::Draw => renderer.draw_rows(self.folders()),
+            Event::MoveDown => {
+                state.library_select(selected_index as usize + 1);
+                let folders = self.folders();
+                renderer.draw_row(selected_index, &folders[selected_index as usize], false);
+                renderer.draw_row(
+                    selected_index + 1,
+                    &folders[selected_index as usize + 1],
+                    true,
+                );
+            }
+            Event::MoveUp => {
+                let selected_index = usize::from(selected_index);
+                let new_index = selected_index - 1;
+                state.library_select(new_index);
+                let folders = self.folders();
+                renderer.draw_row(selected_index as u16, &folders[selected_index], false);
+                renderer.draw_row(new_index as u16, &folders[new_index], true);
+            }
             _ => {}
         }
     }
