@@ -1,9 +1,11 @@
+#[macro_use]
+mod util;
+
 mod component;
 mod library;
 mod player;
 mod settings;
 mod ui;
-mod util;
 
 use std::{thread, time};
 
@@ -27,12 +29,17 @@ fn main() {
 
 fn init_ui() -> UI {
     let mut ui = UI::default();
+
     let player = player::Player::new();
+    player.play("http://localhost:3000/song.mp3");
+
     let terminal = component::Terminal::new();
 
-    player.play("http://localhost:3000/song.mp3");
+    let settings = settings::Settings::new();
+    let library = library::Library::from_path(settings.metadata_path());
 
     ui.register(player);
     ui.register(terminal);
+    ui.register(library);
     ui
 }

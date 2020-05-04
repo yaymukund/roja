@@ -2,7 +2,7 @@ use crossterm::style;
 
 use crate::player::Player;
 use crate::ui::{Event, Listener, State};
-use crate::util::{format_duration, terminal};
+use crate::util::{format_duration, Point};
 
 //
 // Basically, we're trying to render the following:
@@ -31,45 +31,44 @@ const INDICATOR_IDLE: &str = " ";
 const INDICATOR_PLAYING: &str = "▶";
 
 struct Renderer {
-    y: u16,
+    point: Point,
     width: u16,
 }
 
 impl Renderer {
     fn draw(&self) {
         self.draw_indicator(INDICATOR_IDLE);
-        self.write(OFFSET_SLASH, "/");
+        self.point.right(OFFSET_SLASH).write("/");
         self.draw_current_time(0);
         self.draw_total_time(0);
     }
     fn draw_indicator(&self, indicator: &str) {
-        self.write(MARGIN_LEFT, indicator);
+        self.point.right(MARGIN_LEFT).write(indicator);
     }
 
     fn draw_current_time(&self, current_time: i64) {
         let current_time = format!("{:>6}", format_duration(current_time));
-        self.write(OFFSET_CURRENT_TIME, &current_time);
+        self.point.right(OFFSET_CURRENT_TIME).write(&current_time);
     }
 
     fn draw_total_time(&self, total_time: i64) {
         let total_time = format!("{:<6}", format_duration(total_time));
-        self.write(OFFSET_TOTAL_TIME, &total_time);
+        self.point.right(OFFSET_TOTAL_TIME).write(&total_time);
     }
 
     fn draw_progress(&self, percent_complete: u16) {
         let cols = self.width - OFFSET_PROGRESS - MARGIN_RIGHT;
         let filled = (cols * percent_complete) / 100;
-
         let empty = cols - filled;
+
         let filled_bar = style::style("━".repeat(filled as usize)).with(style::Color::DarkMagenta);
         let empty_bar = style::style("─".repeat(empty as usize)).with(style::Color::Green);
 
-        terminal::write_styled_at(OFFSET_PROGRESS, self.y, filled_bar);
-        terminal::write_styled_at(OFFSET_PROGRESS + filled, self.y, empty_bar);
-    }
-
-    fn write(&self, x: u16, text: &str) {
-        terminal::write_at(x, self.y, text);
+        self.point
+            .right(OFFSET_PROGRESS)
+            .write_styled(filled_bar)
+            .right(filled)
+            .write_styled(empty_bar);
     }
 
     fn should_render(&self) -> bool {
@@ -92,7 +91,7 @@ impl Player {
 impl Listener for Player {
     fn on_event(&self, event: &Event, state: &mut State) {
         let renderer = Renderer {
-            y: state.rows() - 1,
+            point: point!(0, state.rows() - 1),
             width: state.cols(),
         };
 
