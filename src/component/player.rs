@@ -107,6 +107,12 @@ impl Listener for Player {
         }
 
         match *event {
+            Event::Tick => {
+                if let Some(event) = self.wait_event() {
+                    state.dispatch(event.into());
+                }
+            }
+
             Event::Draw => renderer.draw(),
             Event::SeekForward | Event::SeekBackward => renderer.draw_current_time(self.elapsed()),
             Event::ChangeIndicator | Event::TogglePause => {
@@ -121,14 +127,6 @@ impl Listener for Player {
                 renderer.draw_progress(self.percent_complete());
             }
             _ => {}
-        }
-    }
-
-    fn wait_event(&self) -> Option<Event> {
-        if let Some(event) = self.wait_event() {
-            Some(event.into())
-        } else {
-            None
         }
     }
 }

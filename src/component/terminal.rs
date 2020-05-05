@@ -10,6 +10,10 @@ impl Terminal {
         terminal::init();
         Terminal
     }
+
+    fn next_event(&self) -> Option<Event> {
+        terminal::poll_event().and_then(|ev| ev.try_into().ok())
+    }
 }
 
 impl Drop for Terminal {
@@ -20,16 +24,14 @@ impl Drop for Terminal {
 
 impl Listener for Terminal {
     fn on_event(&mut self, event: &Event, state: &mut State) {
-        if *event == Event::Quit {
-            state.stop();
-        }
-    }
-
-    fn wait_event(&self) -> Option<Event> {
-        if let Some(event) = terminal::poll_event() {
-            event.try_into().ok()
-        } else {
-            None
+        match *event {
+            Event::Tick => {
+                if let Some(event) = self.next_event() {
+                    state.dispatch(event);
+                }
+            }
+            Event::Quit => state.stop(),
+            _ => {}
         }
     }
 }

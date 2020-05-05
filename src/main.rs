@@ -28,10 +28,7 @@ fn main() {
 }
 
 fn init_ui() -> UI {
-    let mut ui = UI::default();
-
-    let player = player::Player::new();
-    player.play("http://localhost:3000/song.mp3");
+    let mut ui = UI::new();
 
     let terminal = component::Terminal::new();
 
@@ -43,6 +40,9 @@ fn init_ui() -> UI {
         ui.state().cols() / 3,
         ui.state().rows() - 1,
     );
+
+    let player = player::Player::new();
+    player.play("http://localhost:3000/song.mp3");
 
     ui.register(player);
     ui.register(terminal);

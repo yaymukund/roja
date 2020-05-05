@@ -3,6 +3,7 @@ use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
 #[derive(PartialEq)]
 pub enum Event {
+    Tick,
     Draw,
 
     // Keyboard Input

@@ -43,7 +43,7 @@ where
     fn draw_row(&self, index: usize, selected: bool) {
         let item = self.store.get(index);
         let text = item.row_text();
-        let text_width = min(self.width.into(), text.len()).saturating_sub(2);
+        let text_width = min(self.width.saturating_sub(2).into(), text.len());
         let text = &text[..text_width];
         let width = usize::from(self.width - 1);
         let text = &format!(" {:width$}", text, width = width);
