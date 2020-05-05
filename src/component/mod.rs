@@ -3,5 +3,5 @@ mod list;
 mod player;
 mod terminal;
 
-pub use list::{List, ListItem};
+pub use list::{List, ListRow, ListStore};
 pub use terminal::Terminal;

@@ -31,4 +31,8 @@ impl UI {
     {
         self.event_bus.register(Box::new(data));
     }
+
+    pub fn state(&self) -> &State {
+        &self.state
+    }
 }

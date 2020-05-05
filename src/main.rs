@@ -37,9 +37,15 @@ fn init_ui() -> UI {
 
     let settings = settings::Settings::new();
     let library = library::Library::from_path(settings.metadata_path());
+    let library_list = component::List::new(
+        library,
+        point!(0, 0),
+        ui.state().cols() / 3,
+        ui.state().rows() - 1,
+    );
 
     ui.register(player);
     ui.register(terminal);
-    ui.register(library);
+    ui.register(library_list);
     ui
 }

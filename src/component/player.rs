@@ -89,7 +89,7 @@ impl Player {
 }
 
 impl Listener for Player {
-    fn on_event(&self, event: &Event, state: &mut State) {
+    fn on_event(&mut self, event: &Event, state: &mut State) {
         let renderer = Renderer {
             point: point!(0, state.rows() - 1),
             width: state.cols(),

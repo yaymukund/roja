@@ -19,7 +19,7 @@ impl Drop for Terminal {
 }
 
 impl Listener for Terminal {
-    fn on_event(&self, event: &Event, state: &mut State) {
+    fn on_event(&mut self, event: &Event, state: &mut State) {
         if *event == Event::Quit {
             state.stop();
         }
