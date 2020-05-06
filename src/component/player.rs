@@ -36,12 +36,14 @@ struct Renderer {
 }
 
 impl Renderer {
-    fn draw(&self) {
+    fn draw(&self, current_time: i64, total_time: i64, percent_complete: u16) {
         self.draw_indicator(INDICATOR_IDLE);
         self.point.right(OFFSET_SLASH).write("/");
-        self.draw_current_time(0);
-        self.draw_total_time(0);
+        self.draw_current_time(current_time);
+        self.draw_total_time(total_time);
+        self.draw_progress(percent_complete);
     }
+
     fn draw_indicator(&self, indicator: &str) {
         self.point.right(MARGIN_LEFT).write(indicator);
     }
@@ -113,7 +115,7 @@ impl Listener for Player {
                 }
             }
 
-            Event::Draw => renderer.draw(),
+            Event::Draw => renderer.draw(self.elapsed(), self.duration(), self.percent_complete()),
             Event::SeekForward | Event::SeekBackward => renderer.draw_current_time(self.elapsed()),
             Event::ChangeIndicator | Event::TogglePause => {
                 renderer.draw_indicator(self.indicator())

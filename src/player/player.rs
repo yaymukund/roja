@@ -53,13 +53,13 @@ impl Player {
     pub fn elapsed(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Elapsed.as_str())
-            .unwrap()
+            .unwrap_or(0_i64)
     }
 
     pub fn duration(&self) -> i64 {
         self.mpv
             .get_property(PlayerProperty::Duration.as_str())
-            .unwrap()
+            .unwrap_or(1_i64)
     }
 
     pub fn percent_complete(&self) -> u16 {

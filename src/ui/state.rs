@@ -1,5 +1,5 @@
 use super::Event;
-use crossterm::terminal;
+use crate::util::terminal;
 
 pub struct State {
     events: Vec<Event>,
@@ -10,7 +10,7 @@ pub struct State {
 
 impl State {
     pub fn new() -> Self {
-        let (cols, rows) = terminal::size().expect("Could not determine size of terminal");
+        let (cols, rows) = terminal::size();
         State {
             events: Vec::new(),
             stopped: false,
@@ -33,6 +33,12 @@ impl State {
 
     pub fn cols(&self) -> u16 {
         self.cols
+    }
+
+    pub fn resize(&mut self, cols: u16, rows: u16) {
+        self.cols = cols;
+        self.rows = rows;
+        self.dispatch(Event::Draw);
     }
 
     pub fn dispatch(&mut self, event: Event) {

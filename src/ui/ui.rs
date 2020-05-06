@@ -1,6 +1,5 @@
-use std::io::{stdout, Write};
-
 use super::{Event, EventBus, Listener, State};
+use crate::util::terminal;
 
 pub struct UI {
     event_bus: EventBus,
@@ -29,7 +28,7 @@ impl UI {
             self.dispatch(event);
         }
 
-        stdout().flush().expect("Could not flush");
+        terminal::flush();
     }
 
     fn dispatch(&mut self, event: Event) {

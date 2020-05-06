@@ -30,6 +30,10 @@ impl Listener for Terminal {
                     state.dispatch(event);
                 }
             }
+            Event::Resize(cols, rows) => {
+                terminal::clear_all();
+                state.resize(cols, rows);
+            }
             Event::Quit => state.stop(),
             _ => {}
         }

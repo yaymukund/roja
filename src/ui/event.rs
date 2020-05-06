@@ -6,6 +6,9 @@ pub enum Event {
     Tick,
     Draw,
 
+    // Crossterm Input
+    Resize(u16, u16),
+
     // Keyboard Input
     Quit,
     SeekBackward,
@@ -48,8 +51,9 @@ impl<'a> From<MpvEvent<'a>> for Event {
 
 impl From<CrosstermEvent> for Event {
     fn from(crossterm_event: CrosstermEvent) -> Self {
-        if let CrosstermEvent::Key(KeyEvent { code, modifiers: _ }) = crossterm_event {
-            match code {
+        match crossterm_event {
+            CrosstermEvent::Resize(cols, rows) => Event::Resize(cols, rows),
+            CrosstermEvent::Key(KeyEvent { code, modifiers: _ }) => match code {
                 KeyCode::Left => Event::SeekBackward,
                 KeyCode::Right => Event::SeekForward,
                 KeyCode::Down => Event::MoveDown,
@@ -57,9 +61,8 @@ impl From<CrosstermEvent> for Event {
                 KeyCode::Char('c') => Event::TogglePause,
                 KeyCode::Char('q') => Event::Quit,
                 _ => Event::UnknownCrosstermEvent,
-            }
-        } else {
-            Event::UnknownCrosstermEvent
+            },
+            _ => Event::UnknownCrosstermEvent,
         }
     }
 }

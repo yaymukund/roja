@@ -4,7 +4,11 @@ use std::io::{stdout, Write};
 use std::time;
 
 pub use crossterm::style::StyledContent;
-use crossterm::{cursor, event, event::Event as CrosstermEvent, execute, queue, style, terminal};
+use crossterm::{cursor, event, event::Event as CrosstermEvent, queue, style, terminal};
+
+pub fn size() -> (u16, u16) {
+    terminal::size().expect("could not determine size of terminal")
+}
 
 pub fn write_at(point: &Point, text: &str) {
     queue!(
@@ -29,21 +33,22 @@ where
 
 pub fn init() {
     terminal::enable_raw_mode().expect("could not enable raw mode");
-    queue!(
-        stdout(),
-        cursor::Hide,
-        terminal::Clear(terminal::ClearType::All)
-    )
-    .expect("could not hide cursor and clear screen");
+    clear_all();
+    queue!(stdout(), cursor::Hide,).expect("could not hide cursor and clear screen");
+}
+
+pub fn flush() {
+    stdout().flush().expect("could not flush terminal");
+}
+
+pub fn clear_all() {
+    queue!(stdout(), terminal::Clear(terminal::ClearType::All),).expect("could not clear terminal");
 }
 
 pub fn deinit() {
-    execute!(
-        stdout(),
-        cursor::Show,
-        terminal::Clear(terminal::ClearType::All),
-    )
-    .expect("could not display cursor and clear screen");
+    queue!(stdout(), cursor::Show,).expect("could not display cursor and clear screen");
+    clear_all();
+    flush();
     terminal::disable_raw_mode().expect("could not disable raw mode");
 }
 
