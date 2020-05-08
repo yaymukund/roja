@@ -1,7 +1,7 @@
 use crossterm::style;
 
 use crate::player::Player;
-use crate::ui::{Event, Listener, State};
+use crate::ui::{Component, Event, IntoComponent, State};
 use crate::util::{format_duration, Point};
 
 //
@@ -18,9 +18,8 @@ use crate::util::{format_duration, Point};
 // T: Total Time
 // P: Progress (This stretches to fill the remaining space)
 //
-const MARGIN_LEFT: u16 = 1;
 const MARGIN_RIGHT: u16 = 1;
-const OFFSET_INDICATOR: u16 = MARGIN_LEFT;
+const OFFSET_INDICATOR: u16 = 0;
 const OFFSET_CURRENT_TIME: u16 = OFFSET_INDICATOR + 2;
 const OFFSET_SLASH: u16 = OFFSET_CURRENT_TIME + 6;
 const OFFSET_TOTAL_TIME: u16 = OFFSET_SLASH + 1;
@@ -30,22 +29,44 @@ const INDICATOR_PAUSED: &str = "|";
 const INDICATOR_IDLE: &str = " ";
 const INDICATOR_PLAYING: &str = "▶";
 
-struct Renderer {
+impl IntoComponent for Player {
+    type IntoComp = PlayerComponent;
+    fn into_component(self, cols: u16, rows: u16) -> Self::IntoComp {
+        let (point, width) = Self::IntoComp::dimensions(cols, rows);
+
+        Self::IntoComp {
+            player: self,
+            point,
+            width,
+        }
+    }
+}
+
+pub struct PlayerComponent {
+    player: Player,
     point: Point,
     width: u16,
 }
 
-impl Renderer {
-    fn draw(&self, current_time: i64, total_time: i64, percent_complete: u16) {
-        self.draw_indicator(INDICATOR_IDLE);
-        self.point.right(OFFSET_SLASH).write("/");
-        self.draw_current_time(current_time);
-        self.draw_total_time(total_time);
-        self.draw_progress(percent_complete);
+impl PlayerComponent {
+    fn dimensions(cols: u16, rows: u16) -> (Point, u16) {
+        if rows == 0 || cols < 2 {
+            panic!("dimensions for player too small");
+        }
+
+        return (point!(1, rows - 1), cols - 2);
     }
 
-    fn draw_indicator(&self, indicator: &str) {
-        self.point.right(MARGIN_LEFT).write(indicator);
+    fn draw_indicator(&self) {
+        let indicator = if self.player.paused() {
+            INDICATOR_PAUSED
+        } else if self.player.idle_active() {
+            INDICATOR_IDLE
+        } else {
+            INDICATOR_PLAYING
+        };
+
+        self.point.right(OFFSET_INDICATOR).write(indicator);
     }
 
     fn draw_current_time(&self, current_time: i64) {
@@ -58,7 +79,8 @@ impl Renderer {
         self.point.right(OFFSET_TOTAL_TIME).write(&total_time);
     }
 
-    fn draw_progress(&self, percent_complete: u16) {
+    fn draw_progress(&self) {
+        let percent_complete = self.player.percent_complete();
         let cols = self.width - OFFSET_PROGRESS - MARGIN_RIGHT;
         let filled = (cols * percent_complete) / 100;
         let empty = cols - filled;
@@ -78,55 +100,55 @@ impl Renderer {
     }
 }
 
-impl Player {
-    fn indicator(&self) -> &str {
-        if self.paused() {
-            INDICATOR_PAUSED
-        } else if self.idle_active() {
-            INDICATOR_IDLE
-        } else {
-            INDICATOR_PLAYING
+impl Component for PlayerComponent {
+    fn draw(&self) {
+        if !self.should_render() {
+            return;
+        }
+
+        self.draw_indicator();
+        self.point.right(OFFSET_SLASH).write("/");
+        self.draw_current_time(self.player.elapsed());
+        self.draw_total_time(self.player.duration());
+        self.draw_progress();
+    }
+
+    fn resize(&mut self, cols: u16, rows: u16) {
+        let (point, width) = Self::dimensions(cols, rows);
+        self.point = point;
+        self.width = width;
+    }
+
+    fn on_tick(&self, ui: &mut State) {
+        if let Some(event) = self.player.wait_event() {
+            ui.dispatch(event.into());
         }
     }
-}
 
-impl Listener for Player {
-    fn on_event(&mut self, event: &Event, state: &mut State) {
-        let renderer = Renderer {
-            point: point!(0, state.rows() - 1),
-            width: state.cols(),
-        };
-
+    fn on_event(&mut self, event: &Event, _ui: &mut State) {
         match *event {
-            Event::SeekForward => self.seek_forward(),
-            Event::SeekBackward => self.seek_backward(),
-            Event::TogglePause => self.toggle_pause(),
+            Event::SeekForward => self.player.seek_forward(),
+            Event::SeekBackward => self.player.seek_backward(),
+            Event::TogglePause => self.player.toggle_pause(),
             _ => {}
         }
 
-        if !renderer.should_render() {
+        if !self.should_render() {
             return;
         }
 
         match *event {
-            Event::Tick => {
-                if let Some(event) = self.wait_event() {
-                    state.dispatch(event.into());
-                }
+            Event::SeekForward | Event::SeekBackward => {
+                self.draw_current_time(self.player.elapsed())
             }
-
-            Event::Draw => renderer.draw(self.elapsed(), self.duration(), self.percent_complete()),
-            Event::SeekForward | Event::SeekBackward => renderer.draw_current_time(self.elapsed()),
-            Event::ChangeIndicator | Event::TogglePause => {
-                renderer.draw_indicator(self.indicator())
-            }
+            Event::ChangeIndicator | Event::TogglePause => self.draw_indicator(),
             Event::ChangeCurrentTime(secs) => {
-                renderer.draw_current_time(secs);
-                renderer.draw_progress(self.percent_complete());
+                self.draw_current_time(secs);
+                self.draw_progress();
             }
             Event::ChangeTotalTime(secs) => {
-                renderer.draw_total_time(secs);
-                renderer.draw_progress(self.percent_complete());
+                self.draw_total_time(secs);
+                self.draw_progress();
             }
             _ => {}
         }

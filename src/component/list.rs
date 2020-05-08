@@ -2,52 +2,49 @@ use std::cmp::min;
 
 use crossterm::{style, style::Styler};
 
-use crate::ui::{Event, Listener, State};
-use crate::util::{usize_to_u16, Point};
+use crate::ui::{Component, Event, State};
+use crate::util::{usize_to_u16, Canvas};
 
 pub trait ListRow {
     fn row_text(&self) -> &str;
 }
 
-pub trait ListStore {
+pub trait Listable {
     type RowItem: ListRow;
     fn get(&self, index: usize) -> &Self::RowItem;
     fn count(&self) -> usize;
     fn on_select(&mut self);
+    fn canvas(cols: u16, rows: u16) -> Canvas;
 }
 
-pub struct List<S> {
-    store: S,
-    point: Point,
-    width: u16,
-    height: u16,
+pub struct List<L: Listable> {
+    items: L,
+    canvas: Canvas,
     start_index: usize,
     selected_index: usize,
 }
 
-impl<S> List<S>
+impl<L> List<L>
 where
-    S: ListStore,
+    L: Listable,
 {
-    pub fn new(store: S, point: Point, width: u16, height: u16) -> Self {
+    pub fn new(items: L, canvas: Canvas) -> Self {
         Self {
-            store,
-            point,
-            width,
-            height,
+            items,
+            canvas,
             start_index: 0,
             selected_index: 0,
         }
     }
 
     fn draw_row(&self, index: usize, selected: bool) {
-        let item = self.store.get(index);
+        let item = self.items.get(index);
         let text = item.row_text();
-        let text_width = min(self.width.saturating_sub(2).into(), text.len());
+        let text_width = min(self.canvas.width().saturating_sub(2).into(), text.len());
         let text = &text[..text_width];
-        let width = usize::from(self.width - 1);
+        let width = usize::from(self.canvas.width() - 1);
         let text = &format!(" {:width$}", text, width = width);
-        let point = self.point.down(usize_to_u16(index));
+        let point = self.canvas.point().down(usize_to_u16(index));
 
         if selected {
             let text = style::style(text)
@@ -60,16 +57,16 @@ where
         }
     }
 
-    fn draw(&self) {
-        let remaining_items_count = self.store.count() - self.start_index;
-        let row_count = min(self.height.into(), remaining_items_count);
+    fn draw_all(&self) {
+        let remaining_items_count = self.items.count() - self.start_index;
+        let row_count = min(self.canvas.height().into(), remaining_items_count);
         for i in 0..row_count {
             self.draw_row(i, self.selected_index == i);
         }
     }
 
     fn move_down(&mut self) {
-        if self.selected_index == self.store.count() {
+        if self.selected_index == self.items.count() {
             return;
         }
 
@@ -89,21 +86,28 @@ where
     }
 
     fn should_render(&self) -> bool {
-        self.width > 4
+        self.canvas.width() > 4
     }
 }
 
-impl<S> Listener for List<S>
+impl<L> Component for List<L>
 where
-    S: ListStore,
+    L: Listable,
 {
+    fn draw(&self) {
+        self.draw_all();
+    }
+
+    fn resize(&mut self, cols: u16, rows: u16) {
+        self.canvas = L::canvas(cols, rows);
+    }
+
     fn on_event(&mut self, event: &Event, _state: &mut State) {
         if !self.should_render() {
             return;
         }
 
         match *event {
-            Event::Draw => self.draw(),
             Event::MoveDown => self.move_down(),
             Event::MoveUp => self.move_up(),
             _ => {}

@@ -4,10 +4,8 @@ use mpv::events::simple::{Event as MpvEvent, PropertyData};
 #[derive(PartialEq)]
 pub enum Event {
     Tick,
-    Draw,
-
-    // Crossterm Input
     Resize(u16, u16),
+    Draw,
 
     // Keyboard Input
     Quit,

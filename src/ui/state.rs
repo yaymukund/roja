@@ -36,8 +36,7 @@ impl State {
     }
 
     pub fn resize(&mut self, cols: u16, rows: u16) {
-        self.cols = cols;
-        self.rows = rows;
+        self.dispatch(Event::Resize(cols, rows));
         self.dispatch(Event::Draw);
     }
 

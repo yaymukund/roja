@@ -1,4 +1,4 @@
-use super::{Event, EventBus, Listener, State};
+use super::{Component, Event, EventBus, IntoComponent, State};
 use crate::util::terminal;
 
 pub struct UI {
@@ -17,10 +17,6 @@ impl UI {
         self.state.stopped()
     }
 
-    pub fn draw(&mut self) {
-        self.dispatch(Event::Draw);
-    }
-
     pub fn tick(&mut self) {
         self.dispatch(Event::Tick);
 
@@ -37,12 +33,10 @@ impl UI {
 
     pub fn register<D>(&mut self, data: D)
     where
-        D: 'static + Listener,
+        D: 'static + IntoComponent,
     {
-        self.event_bus.register(Box::new(data));
-    }
-
-    pub fn state(&self) -> &State {
-        &self.state
+        let listener = data.into_component(self.state.cols(), self.state.rows());
+        listener.draw();
+        self.event_bus.register(Box::new(listener));
     }
 }

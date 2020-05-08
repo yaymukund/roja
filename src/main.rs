@@ -15,7 +15,6 @@ fn main() {
     env_logger::init();
 
     let mut ui = init_ui();
-    ui.draw();
 
     loop {
         thread::sleep(time::Duration::from_millis(10));
@@ -34,18 +33,12 @@ fn init_ui() -> UI {
 
     let settings = settings::Settings::new();
     let library = library::Library::from_path(settings.metadata_path());
-    let library_list = component::List::new(
-        library,
-        point!(0, 0),
-        ui.state().cols() / 3,
-        ui.state().rows() - 1,
-    );
 
     let player = player::Player::new();
     player.play("http://localhost:3000/song.mp3");
 
-    ui.register(player);
     ui.register(terminal);
-    ui.register(library_list);
+    ui.register(library);
+    ui.register(player);
     ui
 }
