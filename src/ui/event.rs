@@ -52,10 +52,10 @@ impl From<CrosstermEvent> for Event {
         match crossterm_event {
             CrosstermEvent::Resize(cols, rows) => Event::Resize(cols, rows),
             CrosstermEvent::Key(KeyEvent { code, modifiers: _ }) => match code {
-                KeyCode::Left => Event::SeekBackward,
-                KeyCode::Right => Event::SeekForward,
-                KeyCode::Down => Event::MoveDown,
-                KeyCode::Up => Event::MoveUp,
+                KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
+                KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
+                KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
+                KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
                 KeyCode::Char('c') => Event::TogglePause,
                 KeyCode::Char('q') => Event::Quit,
                 _ => Event::UnknownCrosstermEvent,

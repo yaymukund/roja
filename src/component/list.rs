@@ -1,9 +1,12 @@
 use std::cmp::min;
+use std::ops::Range;
 
 use crossterm::{style, style::Styler};
 
 use crate::ui::{Component, Event, State};
-use crate::util::{usize_to_u16, Canvas};
+use crate::util::{truncate, usize_to_u16, Canvas};
+
+const LIST_BUFFER: u16 = 3;
 
 pub trait ListRow {
     fn row_text(&self) -> &str;
@@ -37,14 +40,24 @@ where
         }
     }
 
+    fn item_position(&self, index: usize) -> u16 {
+        usize_to_u16(index - self.start_index)
+    }
+
+    fn visible_range(&self) -> Range<usize> {
+        let remaining = self.items.count() - self.start_index;
+        let height: usize = self.canvas.height().into();
+        let end_index = min(remaining, height + self.start_index);
+        self.start_index..end_index
+    }
+
     fn draw_row(&self, index: usize, selected: bool) {
         let item = self.items.get(index);
-        let text = item.row_text();
-        let text_width = min(self.canvas.width().saturating_sub(2).into(), text.len());
-        let text = &text[..text_width];
-        let width = usize::from(self.canvas.width() - 1);
-        let text = &format!(" {:width$}", text, width = width);
-        let point = self.canvas.point().down(usize_to_u16(index));
+        let position = self.item_position(index);
+        let total_width: usize = self.canvas.width().saturating_sub(2).into();
+        let (text, text_width) = truncate(item.row_text(), total_width);
+        let text = &format!(" {}{:rem$} ", text, "", rem = (total_width - text_width));
+        let point = self.canvas.point().down(position);
 
         if selected {
             let text = style::style(text)
@@ -58,21 +71,27 @@ where
     }
 
     fn draw_all(&self) {
-        let remaining_items_count = self.items.count() - self.start_index;
-        let row_count = min(self.canvas.height().into(), remaining_items_count);
-        for i in 0..row_count {
-            self.draw_row(i, self.selected_index == i);
+        for index in self.visible_range() {
+            self.draw_row(index, self.selected_index == index);
         }
     }
 
     fn move_down(&mut self) {
-        if self.selected_index == self.items.count() {
+        let index = self.selected_index;
+        if self.selected_index == self.items.count() - 1 {
             return;
         }
 
-        self.draw_row(self.selected_index, false);
+        let new_index = index + 1;
         self.selected_index += 1;
-        self.draw_row(self.selected_index, true);
+
+        if self.visible_range().contains(&new_index) {
+            self.draw_row(index, false);
+            self.draw_row(new_index, true);
+        } else {
+            self.start_index += 1;
+            self.draw_all();
+        }
     }
 
     fn move_up(&mut self) {

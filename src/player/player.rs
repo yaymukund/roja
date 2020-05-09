@@ -107,6 +107,6 @@ impl Player {
     fn command(&self, name: &str, args: &[&str]) {
         self.mpv
             .command(name, args)
-            .unwrap_or_else(|e| log::error!("mpv {} error: {:?}", name, e));
+            .unwrap_or_else(|e| println!("mpv {} error: {:?}", name, e));
     }
 }

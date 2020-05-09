@@ -12,8 +12,6 @@ use std::{thread, time};
 use ui::UI;
 
 fn main() {
-    env_logger::init();
-
     let mut ui = init_ui();
 
     loop {
