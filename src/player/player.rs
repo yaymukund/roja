@@ -96,7 +96,7 @@ impl Player {
         self.mpv.set_property("pause", next).unwrap();
     }
 
-    pub fn wait_event(&self) -> Option<MpvEvent> {
+    pub fn wait_event(&self) -> Option<MpvEvent<'_>> {
         if let Some(Ok(event)) = unsafe { self.mpv.wait_event(0.0) } {
             Some(event)
         } else {

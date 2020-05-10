@@ -12,12 +12,8 @@ impl ListRow for Folder {
 impl Listable for Library {
     type RowItem = Folder;
 
-    fn get(&self, index: usize) -> &Folder {
-        &self.folders()[index]
-    }
-
-    fn count(&self) -> usize {
-        self.folders().len()
+    fn items(&self) -> &[Self::RowItem] {
+        &self.folders()
     }
 
     fn on_select(&mut self) {

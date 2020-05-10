@@ -1,12 +1,10 @@
 use std::cmp::min;
-use std::ops::Range;
+use std::ops::RangeInclusive;
 
 use crossterm::{style, style::Styler};
 
 use crate::ui::{Component, Event, State};
 use crate::util::{truncate, usize_to_u16, Canvas};
-
-const LIST_BUFFER: u16 = 3;
 
 pub trait ListRow {
     fn row_text(&self) -> &str;
@@ -14,14 +12,13 @@ pub trait ListRow {
 
 pub trait Listable {
     type RowItem: ListRow;
-    fn get(&self, index: usize) -> &Self::RowItem;
-    fn count(&self) -> usize;
+    fn items(&self) -> &[Self::RowItem];
     fn on_select(&mut self);
     fn canvas(cols: u16, rows: u16) -> Canvas;
 }
 
 pub struct List<L: Listable> {
-    items: L,
+    listable: L,
     canvas: Canvas,
     start_index: usize,
     selected_index: usize,
@@ -31,29 +28,40 @@ impl<L> List<L>
 where
     L: Listable,
 {
-    pub fn new(items: L, canvas: Canvas) -> Self {
+    pub fn new(listable: L, canvas: Canvas) -> Self {
         Self {
-            items,
+            listable,
             canvas,
             start_index: 0,
             selected_index: 0,
         }
     }
 
-    fn item_position(&self, index: usize) -> u16 {
-        usize_to_u16(index - self.start_index)
+    fn items_count(&self) -> usize {
+        self.listable.items().len()
     }
 
-    fn visible_range(&self) -> Range<usize> {
-        let remaining = self.items.count() - self.start_index;
-        let height: usize = self.canvas.height().into();
-        let end_index = min(remaining, height + self.start_index);
-        self.start_index..end_index
+    fn get_item(&self, index: usize) -> &L::RowItem {
+        &self.listable.items()[index]
     }
 
-    fn draw_row(&self, index: usize, selected: bool) {
-        let item = self.items.get(index);
-        let position = self.item_position(index);
+    fn end_index(&self) -> usize {
+        let end = self.start_index + usize::from(self.canvas.height()) - 1;
+        min(end, self.items_count() - 1)
+    }
+
+    fn selected_position(&self) -> u16 {
+        usize_to_u16(self.selected_index - self.start_index)
+    }
+
+    fn visible_indices(&self) -> RangeInclusive<usize> {
+        self.start_index..=self.end_index()
+    }
+
+    fn draw_row(&self, position: u16) {
+        let index = self.start_index + usize::from(position);
+        let selected = index == self.selected_index;
+        let item = self.get_item(index);
         let total_width: usize = self.canvas.width().saturating_sub(2).into();
         let (text, text_width) = truncate(item.row_text(), total_width);
         let text = &format!(" {}{:rem$} ", text, "", rem = (total_width - text_width));
@@ -71,41 +79,82 @@ where
     }
 
     fn draw_all(&self) {
-        for index in self.visible_range() {
-            self.draw_row(index, self.selected_index == index);
+        for index in self.visible_indices() {
+            let position = usize_to_u16(index - self.start_index);
+            self.draw_row(position);
         }
     }
 
-    fn move_down(&mut self) {
-        let index = self.selected_index;
-        if self.selected_index == self.items.count() - 1 {
+    fn scroll_down(&mut self) {
+        if self.selected_index == self.items_count() - 1 {
             return;
         }
 
-        let new_index = index + 1;
-        self.selected_index += 1;
-
-        if self.visible_range().contains(&new_index) {
-            self.draw_row(index, false);
-            self.draw_row(new_index, true);
-        } else {
-            self.start_index += 1;
-            self.draw_all();
-        }
+        self.select(self.selected_index + 1);
     }
 
-    fn move_up(&mut self) {
+    fn scroll_up(&mut self) {
         if self.selected_index == 0 {
             return;
         }
 
-        self.draw_row(self.selected_index, false);
-        self.selected_index -= 1;
-        self.draw_row(self.selected_index, true);
+        self.select(self.selected_index - 1);
+    }
+
+    fn scroll_page_down(&mut self) {
+        let page_size = self.page_size();
+        let items_count = self.items_count();
+        let mut new_index = self.selected_index + page_size;
+
+        if new_index > items_count - 1 {
+            new_index = items_count - 1;
+        }
+
+        self.select(new_index);
+    }
+
+    fn scroll_page_up(&mut self) {
+        let new_index = self.selected_index.saturating_sub(self.page_size());
+        self.select(new_index);
+    }
+
+    fn page_size(&self) -> usize {
+        usize::from(self.canvas.height() / 2)
     }
 
     fn should_render(&self) -> bool {
         self.canvas.width() > 4
+    }
+
+    fn select(&mut self, new_index: usize) {
+        if self.selected_index == new_index {
+            return;
+        }
+
+        if self.visible_indices().contains(&new_index) {
+            let position = self.selected_position();
+            self.selected_index = new_index;
+            self.draw_row(position);
+            self.draw_row(self.selected_position());
+            return;
+        }
+
+        if new_index > self.selected_index {
+            self.start_index += new_index - self.selected_index;
+            self.selected_index = new_index;
+        } else {
+            self.start_index = self
+                .start_index
+                .saturating_sub(self.selected_index - new_index);
+            self.selected_index = new_index;
+        }
+
+        let max_start_index = self.items_count() - usize::from(self.canvas.height());
+        if self.start_index > max_start_index {
+            self.start_index = max_start_index;
+        }
+
+        self.draw_all();
     }
 }
 
@@ -127,8 +176,10 @@ where
         }
 
         match *event {
-            Event::MoveDown => self.move_down(),
-            Event::MoveUp => self.move_up(),
+            Event::MoveDown => self.scroll_down(),
+            Event::MoveUp => self.scroll_up(),
+            Event::PageDown => self.scroll_page_down(),
+            Event::PageUp => self.scroll_page_up(),
             _ => {}
         }
     }

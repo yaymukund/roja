@@ -54,7 +54,7 @@ impl PlayerComponent {
             panic!("dimensions for player too small");
         }
 
-        return (point!(1, rows - 1), cols - 2);
+        (point!(1, rows - 1), cols - 2)
     }
 
     fn draw_indicator(&self) {

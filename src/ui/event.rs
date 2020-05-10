@@ -1,4 +1,4 @@
-use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent};
+use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
 #[derive(PartialEq)]
@@ -13,6 +13,8 @@ pub enum Event {
     SeekForward,
     MoveDown,
     MoveUp,
+    PageDown,
+    PageUp,
     TogglePause,
 
     // MPV Events
@@ -26,7 +28,7 @@ pub enum Event {
 }
 
 impl<'a> From<MpvEvent<'a>> for Event {
-    fn from(mpv_event: MpvEvent) -> Self {
+    fn from(mpv_event: MpvEvent<'_>) -> Self {
         match mpv_event {
             MpvEvent::PropertyChange {
                 name: "time-pos",
@@ -51,16 +53,28 @@ impl From<CrosstermEvent> for Event {
     fn from(crossterm_event: CrosstermEvent) -> Self {
         match crossterm_event {
             CrosstermEvent::Resize(cols, rows) => Event::Resize(cols, rows),
-            CrosstermEvent::Key(KeyEvent { code, modifiers: _ }) => match code {
-                KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
-                KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
-                KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
-                KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
-                KeyCode::Char('c') => Event::TogglePause,
-                KeyCode::Char('q') => Event::Quit,
-                _ => Event::UnknownCrosstermEvent,
-            },
+            CrosstermEvent::Key(KeyEvent { code, modifiers }) => from_key_event(code, modifiers),
             _ => Event::UnknownCrosstermEvent,
         }
+    }
+}
+
+fn from_key_event(code: KeyCode, modifiers: KeyModifiers) -> Event {
+    if modifiers.contains(KeyModifiers::CONTROL) {
+        match code {
+            KeyCode::Down | KeyCode::Char('j') => return Event::PageDown,
+            KeyCode::Up | KeyCode::Char('k') => return Event::PageUp,
+            _ => {}
+        }
+    }
+
+    match code {
+        KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
+        KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
+        KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
+        KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
+        KeyCode::Char('c') => Event::TogglePause,
+        KeyCode::Char('q') => Event::Quit,
+        _ => Event::UnknownCrosstermEvent,
     }
 }
