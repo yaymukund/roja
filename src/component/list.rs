@@ -20,8 +20,8 @@ pub trait Listable {
 pub struct List<L: Listable> {
     listable: L,
     canvas: Canvas,
-    start_index: usize,
-    selected_index: usize,
+    start_index: u16,
+    selected_index: u16,
 }
 
 impl<L> List<L>
@@ -37,37 +37,41 @@ where
         }
     }
 
-    fn items_count(&self) -> usize {
-        self.listable.items().len()
+    fn items_count(&self) -> u16 {
+        usize_to_u16(self.listable.items().len())
     }
 
-    fn get_item(&self, index: usize) -> &L::RowItem {
-        &self.listable.items()[index]
+    fn get_item(&self, index: u16) -> &L::RowItem {
+        &self.listable.items()[usize::from(index)]
     }
 
-    fn end_index(&self) -> usize {
-        let end = self.start_index + usize::from(self.canvas.height()) - 1;
+    fn end_index(&self) -> u16 {
+        let end = self.start_index + self.canvas.height() - 1;
         min(end, self.items_count() - 1)
     }
 
     fn selected_position(&self) -> u16 {
-        usize_to_u16(self.selected_index - self.start_index)
+        self.selected_index - self.start_index
     }
 
-    fn visible_indices(&self) -> RangeInclusive<usize> {
+    fn visible_indices(&self) -> RangeInclusive<u16> {
         self.start_index..=self.end_index()
     }
 
     fn draw_row(&self, position: u16) {
-        let index = self.start_index + usize::from(position);
-        let selected = index == self.selected_index;
+        let index = self.start_index + position;
         let item = self.get_item(index);
-        let total_width: usize = self.canvas.width().saturating_sub(2).into();
+        let total_width = self.canvas.width().saturating_sub(2);
         let (text, text_width) = truncate(item.row_text(), total_width);
-        let text = &format!(" {}{:rem$} ", text, "", rem = (total_width - text_width));
+        let text = &format!(
+            " {}{:rem$} ",
+            text,
+            "",
+            rem = usize::from(total_width - text_width)
+        );
         let point = self.canvas.point().down(position);
 
-        if selected {
+        if index == self.selected_index {
             let text = style::style(text)
                 .bold()
                 .with(style::Color::White)
@@ -80,8 +84,7 @@ where
 
     fn draw_all(&self) {
         for index in self.visible_indices() {
-            let position = usize_to_u16(index - self.start_index);
-            self.draw_row(position);
+            self.draw_row(index - self.start_index);
         }
     }
 
@@ -118,15 +121,15 @@ where
         self.select(new_index);
     }
 
-    fn page_size(&self) -> usize {
-        usize::from(self.canvas.height() / 2)
+    fn page_size(&self) -> u16 {
+        self.canvas.height() / 2
     }
 
     fn should_render(&self) -> bool {
         self.canvas.width() > 4
     }
 
-    fn select(&mut self, new_index: usize) {
+    fn select(&mut self, new_index: u16) {
         if self.selected_index == new_index {
             return;
         }
@@ -149,7 +152,7 @@ where
             self.selected_index = new_index;
         }
 
-        let max_start_index = self.items_count() - usize::from(self.canvas.height());
+        let max_start_index = self.items_count() - self.canvas.height();
         if self.start_index > max_start_index {
             self.start_index = max_start_index;
         }
