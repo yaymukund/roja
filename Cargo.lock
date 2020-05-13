@@ -83,6 +83,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "fst"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "fuchsia-cprng"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -419,6 +424,7 @@ name = "roja"
 version = "0.1.0"
 dependencies = [
  "crossterm 0.17.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fst 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "mpv 0.1.0 (git+https://github.com/yaymukund/mpv-rs)",
  "serde 1.0.105 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.48 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -655,6 +661,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum crossterm 0.17.4 (registry+https://github.com/rust-lang/crates.io-index)" = "2a880035bfe4707e344da9acf50cc94d003fe337f50afd94c8722c1bb4e0a933"
 "checksum crossterm_winapi 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)" = "057b7146d02fb50175fd7dbe5158f6097f33d02831f43b4ee8ae4ddf67b68f5c"
+"checksum fst 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "81f9cac32c1741cdf6b66be7dcf0d9c7f25ccf12f8aa84c16cfa31f9f14513b3"
 "checksum fuchsia-cprng 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
 "checksum fuchsia-zircon 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2e9763c69ebaae630ba35f74888db465e49e259ba1bc0eda7d06f4a067615d82"
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
