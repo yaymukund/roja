@@ -1,19 +1,14 @@
 use std::convert::TryInto;
 
-use crate::ui::{Component, Event, State};
+use crate::ui::{Event, Listener, State};
 use crate::util::terminal;
 
 pub struct Terminal;
 
-impl Component for Terminal {
-    fn on_tick(&self, ui: &mut State) {
-        if let Some(event) = self.next_event() {
-            ui.dispatch(event);
-        }
-    }
-
+impl Listener for Terminal {
     fn on_event(&mut self, event: &Event, ui: &mut State) {
         match *event {
+            Event::Tick => self.wait_event(ui),
             Event::Quit => ui.stop(),
             Event::Resize(cols, rows) => {
                 terminal::clear_all();
@@ -32,6 +27,12 @@ impl Terminal {
 
     fn next_event(&self) -> Option<Event> {
         terminal::poll_event().and_then(|ev| ev.try_into().ok())
+    }
+
+    fn wait_event(&self, ui: &mut State) {
+        if let Some(event) = self.next_event() {
+            ui.dispatch(event);
+        }
     }
 }
 

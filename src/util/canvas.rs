@@ -9,6 +9,7 @@ macro_rules! point {
     }};
 }
 
+#[derive(Debug)]
 pub struct Point {
     x: u16,
     y: u16,

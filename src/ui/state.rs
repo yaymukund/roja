@@ -1,8 +1,9 @@
 use super::Event;
 use crate::util::terminal;
+use std::collections::VecDeque;
 
 pub struct State {
-    events: Vec<Event>,
+    events: VecDeque<Event>,
     stopped: bool,
     rows: u16,
     cols: u16,
@@ -12,7 +13,7 @@ impl State {
     pub fn new() -> Self {
         let (cols, rows) = terminal::size();
         State {
-            events: Vec::new(),
+            events: VecDeque::new(),
             stopped: false,
             rows,
             cols,
@@ -36,15 +37,15 @@ impl State {
     }
 
     pub fn resize(&mut self, cols: u16, rows: u16) {
-        self.dispatch(Event::Resize(cols, rows));
+        self.dispatch(Event::ResizeListener(cols, rows));
         self.dispatch(Event::Draw);
     }
 
     pub fn dispatch(&mut self, event: Event) {
-        self.events.push(event);
+        self.events.push_back(event);
     }
 
     pub fn next_event(&mut self) -> Option<Event> {
-        self.events.pop()
+        self.events.pop_front()
     }
 }

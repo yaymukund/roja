@@ -1,11 +1,18 @@
+use std::rc::Rc;
+
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
-#[derive(PartialEq)]
+use crate::library::Track;
+
+#[derive(Debug)]
 pub enum Event {
     Tick,
     Resize(u16, u16),
+    ResizeListener(u16, u16),
     Draw,
+    SelectFolder(usize),
+    SetPlaylistTracks(Vec<Rc<Track>>),
 
     // Keyboard Input
     Quit,

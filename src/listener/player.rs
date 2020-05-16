@@ -1,7 +1,7 @@
 use crossterm::style;
 
 use crate::player::Player;
-use crate::ui::{Component, Event, IntoComponent, State};
+use crate::ui::{Event, IntoListener, Listener, State};
 use crate::util::{format_duration, Point};
 
 //
@@ -29,12 +29,12 @@ const INDICATOR_PAUSED: &str = "|";
 const INDICATOR_IDLE: &str = " ";
 const INDICATOR_PLAYING: &str = "▶";
 
-impl IntoComponent for Player {
-    type IntoComp = PlayerComponent;
-    fn into_component(self, cols: u16, rows: u16) -> Self::IntoComp {
-        let (point, width) = Self::IntoComp::dimensions(cols, rows);
+impl IntoListener for Player {
+    type LType = PlayerComponent;
+    fn into_listener(self, cols: u16, rows: u16) -> Self::LType {
+        let (point, width) = Self::LType::dimensions(cols, rows);
 
-        Self::IntoComp {
+        Self::LType {
             player: self,
             point,
             width,
@@ -95,17 +95,11 @@ impl PlayerComponent {
             .write_styled(empty_bar);
     }
 
-    fn should_render(&self) -> bool {
+    fn should_draw(&self) -> bool {
         self.width >= 28
     }
-}
 
-impl Component for PlayerComponent {
     fn draw(&self) {
-        if !self.should_render() {
-            return;
-        }
-
         self.draw_indicator();
         self.point.right(OFFSET_SLASH).write("/");
         self.draw_current_time(self.player.elapsed());
@@ -113,31 +107,36 @@ impl Component for PlayerComponent {
         self.draw_progress();
     }
 
-    fn resize(&mut self, cols: u16, rows: u16) {
-        let (point, width) = Self::dimensions(cols, rows);
-        self.point = point;
-        self.width = width;
-    }
-
-    fn on_tick(&self, ui: &mut State) {
+    fn wait_event(&self, ui: &mut State) {
         if let Some(event) = self.player.wait_event() {
             ui.dispatch(event.into());
         }
     }
 
-    fn on_event(&mut self, event: &Event, _ui: &mut State) {
+    fn resize(&mut self, cols: u16, rows: u16) {
+        let (point, width) = Self::dimensions(cols, rows);
+        self.point = point;
+        self.width = width;
+    }
+}
+
+impl Listener for PlayerComponent {
+    fn on_event(&mut self, event: &Event, ui: &mut State) {
         match *event {
+            Event::ResizeListener(cols, rows) => self.resize(cols, rows),
+            Event::Tick => self.wait_event(ui),
             Event::SeekForward => self.player.seek_forward(),
             Event::SeekBackward => self.player.seek_backward(),
             Event::TogglePause => self.player.toggle_pause(),
             _ => {}
         }
 
-        if !self.should_render() {
+        if !self.should_draw() {
             return;
         }
 
         match *event {
+            Event::Draw => self.draw(),
             Event::SeekForward | Event::SeekBackward => {
                 self.draw_current_time(self.player.elapsed())
             }
