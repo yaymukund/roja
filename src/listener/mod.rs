@@ -1,7 +1,7 @@
-mod folders;
+mod folders_view;
 mod list;
 mod player;
-mod playlist;
+mod playlist_view;
 mod terminal;
 mod track_index;
 

@@ -9,12 +9,12 @@ impl ListRow for Folder {
     }
 }
 
-pub struct FolderList {
+pub struct FoldersView {
     list: List,
     folders: Vec<Folder>,
 }
 
-impl Listener for FolderList {
+impl Listener for FoldersView {
     fn on_event(&mut self, event: &Event, ui: &mut State) {
         self.list
             .with(&self.folders)
@@ -26,7 +26,7 @@ impl Listener for FolderList {
 }
 
 impl IntoListener for Vec<Folder> {
-    type LType = FolderList;
+    type LType = FoldersView;
 
     fn into_listener(self, cols: u16, rows: u16) -> Self::LType {
         let list = List::new(cols, rows, |cols, rows| {
