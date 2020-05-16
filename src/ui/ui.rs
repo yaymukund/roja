@@ -35,7 +35,7 @@ impl UI {
     where
         D: 'static + IntoListener,
     {
-        let mut listener = data.into_listener(self.state.cols(), self.state.rows());
+        let mut listener = data.into_listener(self.state.layout());
         listener.on_event(&Event::Draw, &mut self.state);
         self.event_bus.register(Box::new(listener));
     }

@@ -1,7 +1,6 @@
 use super::{List, ListRow};
 use crate::library::Folder;
-use crate::ui::{Event, IntoListener, Listener, State};
-use crate::util::Canvas;
+use crate::ui::{Event, IntoListener, Layout, Listener, State};
 
 impl ListRow for Folder {
     fn row_text(&self) -> &str {
@@ -28,10 +27,8 @@ impl Listener for FoldersView {
 impl IntoListener for Vec<Folder> {
     type LType = FoldersView;
 
-    fn into_listener(self, cols: u16, rows: u16) -> Self::LType {
-        let list = List::new(cols, rows, |cols, rows| {
-            Canvas::new(point!(0, 0), cols / 3, rows - 1)
-        });
+    fn into_listener(self, layout: &Layout) -> Self::LType {
+        let list = List::new(layout, |layout| layout.folder_view.clone());
 
         Self::LType {
             list,

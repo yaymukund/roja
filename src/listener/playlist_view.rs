@@ -2,8 +2,7 @@ use std::rc::Rc;
 
 use super::{List, ListRow};
 use crate::library::{Playlist, Track};
-use crate::ui::{Event, IntoListener, Listener, State};
-use crate::util::Canvas;
+use crate::ui::{Event, IntoListener, Layout, Listener, State};
 
 impl ListRow for Rc<Track> {
     fn row_text(&self) -> &str {
@@ -35,12 +34,8 @@ impl Listener for PlaylistView {
 impl IntoListener for Playlist {
     type LType = PlaylistView;
 
-    fn into_listener(self, cols: u16, rows: u16) -> Self::LType {
-        let list = List::new(cols, rows, |cols, rows| {
-            let start_x = cols / 3 + 1;
-            let width = cols - start_x;
-            Canvas::new(point!(start_x, 0), width, rows - 1)
-        });
+    fn into_listener(self, layout: &Layout) -> Self::LType {
+        let list = List::new(layout, |layout| layout.playlist.clone());
 
         Self::LType {
             list,

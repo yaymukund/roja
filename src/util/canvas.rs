@@ -9,7 +9,7 @@ macro_rules! point {
     }};
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Point {
     x: u16,
     y: u16,
@@ -36,10 +36,12 @@ impl Point {
         Self::new(self.x, self.y + offset)
     }
 
+    #[allow(dead_code)]
     pub fn left(&self, offset: u16) -> Self {
         Self::new(self.x - offset, self.y)
     }
 
+    #[allow(dead_code)]
     pub fn up(&self, offset: u16) -> Self {
         Self::new(self.x, self.y - offset)
     }
@@ -58,6 +60,7 @@ impl Point {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Canvas {
     point: Point,
     width: u16,
@@ -72,9 +75,7 @@ impl Canvas {
             height,
         }
     }
-}
 
-impl Canvas {
     pub fn width(&self) -> u16 {
         self.width
     }
@@ -85,5 +86,39 @@ impl Canvas {
 
     pub fn point(&self) -> &Point {
         &self.point
+    }
+
+    pub fn right(&self, offset: u16) -> Point {
+        self.point.right(offset)
+    }
+
+    #[allow(dead_code)]
+    pub fn down(&self, offset: u16) -> Point {
+        self.point.down(offset)
+    }
+
+    #[allow(dead_code)]
+    pub fn left(&self, offset: u16) -> Point {
+        self.point.left(offset)
+    }
+
+    #[allow(dead_code)]
+    pub fn up(&self, offset: u16) -> Point {
+        self.point.up(offset)
+    }
+
+    #[allow(dead_code)]
+    pub fn write(&self, text: &str) -> &Self {
+        self.point.write(text);
+        self
+    }
+
+    #[allow(dead_code)]
+    pub fn write_styled<D>(&self, text: terminal::StyledContent<D>) -> &Self
+    where
+        D: Display + Clone,
+    {
+        self.point.write_styled(text);
+        self
     }
 }

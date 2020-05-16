@@ -1,4 +1,4 @@
-use super::{Event, State};
+use super::{Event, Layout, State};
 
 #[derive(Default)]
 pub struct EventBus {
@@ -30,7 +30,7 @@ pub trait Listener {
 
 pub trait IntoListener {
     type LType: Listener;
-    fn into_listener(self, cols: u16, rows: u16) -> Self::LType;
+    fn into_listener(self, layout: &Layout) -> Self::LType;
 }
 
 impl<L> IntoListener for L
@@ -38,7 +38,7 @@ where
     L: Listener,
 {
     type LType = L;
-    fn into_listener(self, _cols: u16, _rows: u16) -> Self::LType {
+    fn into_listener(self, _layout: &Layout) -> Self::LType {
         self
     }
 }

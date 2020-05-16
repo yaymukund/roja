@@ -1,12 +1,12 @@
 use super::Event;
+use super::Layout;
 use crate::util::terminal;
 use std::collections::VecDeque;
 
 pub struct State {
     events: VecDeque<Event>,
     stopped: bool,
-    rows: u16,
-    cols: u16,
+    layout: Layout,
 }
 
 impl State {
@@ -15,8 +15,7 @@ impl State {
         State {
             events: VecDeque::new(),
             stopped: false,
-            rows,
-            cols,
+            layout: Layout::new(cols, rows),
         }
     }
 
@@ -28,16 +27,9 @@ impl State {
         self.stopped
     }
 
-    pub fn rows(&self) -> u16 {
-        self.rows
-    }
-
-    pub fn cols(&self) -> u16 {
-        self.cols
-    }
-
     pub fn resize(&mut self, cols: u16, rows: u16) {
-        self.dispatch(Event::ResizeListener(cols, rows));
+        self.layout = Layout::new(cols, rows);
+        self.dispatch(Event::ResizeListener(self.layout.clone()));
         self.dispatch(Event::Draw);
     }
 
@@ -47,5 +39,9 @@ impl State {
 
     pub fn next_event(&mut self) -> Option<Event> {
         self.events.pop_front()
+    }
+
+    pub fn layout(&self) -> &Layout {
+        &self.layout
     }
 }

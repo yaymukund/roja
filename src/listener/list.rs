@@ -1,8 +1,9 @@
 use std::ops::RangeInclusive;
 
 use crossterm::{style, style::Styler};
+use unicode_width::UnicodeWidthStr;
 
-use crate::ui::{Event, State};
+use crate::ui::{Event, Layout, State};
 use crate::util::{truncate, usize_to_u16, Canvas};
 
 pub trait ListRow {
@@ -13,7 +14,7 @@ pub struct List {
     canvas: Canvas,
     start_index: u16,
     selected_index: u16,
-    make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
+    make_canvas: Box<dyn Fn(&Layout) -> Canvas>,
 }
 
 pub struct ListExecutor<'a, R: ListRow> {
@@ -23,11 +24,11 @@ pub struct ListExecutor<'a, R: ListRow> {
 }
 
 impl List {
-    pub fn new<F: 'static>(cols: u16, rows: u16, make_canvas: F) -> Self
+    pub fn new<F: 'static>(layout: &Layout, make_canvas: F) -> Self
     where
-        F: Fn(u16, u16) -> Canvas,
+        F: Fn(&Layout) -> Canvas,
     {
-        let canvas = make_canvas(cols, rows);
+        let canvas = make_canvas(layout);
         Self {
             canvas,
             make_canvas: Box::new(make_canvas),
@@ -64,9 +65,9 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
 
         let old_selected_index = self.list.selected_index;
 
-        match *event {
+        match event {
             Event::Draw => self.draw_all(),
-            Event::Resize(cols, rows) => self.resize_canvas(cols, rows),
+            Event::ResizeListener(layout) => self.resize_canvas(&layout),
             Event::MoveDown => self.scroll_down(),
             Event::MoveUp => self.scroll_up(),
             Event::PageDown => self.scroll_page_down(),
@@ -210,7 +211,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
         }
     }
 
-    fn resize_canvas(&mut self, cols: u16, rows: u16) {
-        self.list.canvas = (&self.list.make_canvas)(cols, rows);
+    fn resize_canvas(&mut self, layout: &Layout) {
+        self.list.canvas = (&self.list.make_canvas)(layout);
     }
 }

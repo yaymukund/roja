@@ -12,7 +12,7 @@ fn find_truncated_string_end(text: &str, target_width: u16) -> (usize, u16) {
     let mut display_width = 0;
 
     for (i, c) in text.grapheme_indices(true) {
-        let cwidth = usize_to_u16(c.width_cjk());
+        let cwidth = usize_to_u16(UnicodeWidthStr::width(c));
         let next_display_width = display_width + cwidth;
 
         if next_display_width > target_width {
