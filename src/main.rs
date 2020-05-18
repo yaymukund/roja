@@ -39,6 +39,7 @@ fn init_ui() -> UI {
     let player = player::Player::new();
     player.play("http://localhost:3000/song.mp3");
 
+    ui.register(listener::Window);
     ui.register(tracks_index);
     ui.register(terminal);
     ui.register(folders);

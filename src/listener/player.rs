@@ -1,4 +1,4 @@
-use crossterm::style;
+use crossterm::style::{style, Color};
 
 use crate::player::Player;
 use crate::ui::{Event, IntoListener, Layout, Listener, State};
@@ -35,6 +35,8 @@ impl IntoListener for Player {
         Self::LType {
             player: self,
             canvas: layout.player.clone(),
+            progress_bar_fill: layout.colors.progress_bar_fill,
+            progress_bar_empty: layout.colors.progress_bar_empty,
         }
     }
 }
@@ -42,6 +44,8 @@ impl IntoListener for Player {
 pub struct PlayerComponent {
     player: Player,
     canvas: Canvas,
+    progress_bar_fill: Color,
+    progress_bar_empty: Color,
 }
 
 impl PlayerComponent {
@@ -75,8 +79,8 @@ impl PlayerComponent {
         let filled = (cols * percent_complete) / 100;
         let empty = cols - filled;
 
-        let filled_bar = style::style("━".repeat(filled as usize)).with(style::Color::DarkMagenta);
-        let empty_bar = style::style("─".repeat(empty as usize)).with(style::Color::Green);
+        let filled_bar = style("━".repeat(filled as usize)).with(self.progress_bar_fill);
+        let empty_bar = style("─".repeat(empty as usize)).with(self.progress_bar_empty);
 
         self.canvas
             .right(OFFSET_PROGRESS)

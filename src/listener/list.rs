@@ -1,7 +1,6 @@
 use std::ops::RangeInclusive;
 
 use crossterm::{style, style::Styler};
-use unicode_width::UnicodeWidthStr;
 
 use crate::ui::{Event, Layout, State};
 use crate::util::{truncate, usize_to_u16, Canvas};
@@ -37,7 +36,7 @@ impl List {
         }
     }
 
-    pub fn with<'a, R>(&'a mut self, items: &'a Vec<R>) -> ListExecutor<'a, R>
+    pub fn items<'a, R>(&'a mut self, items: &'a Vec<R>) -> ListExecutor<'a, R>
     where
         R: ListRow,
     {

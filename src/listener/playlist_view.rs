@@ -26,7 +26,7 @@ impl Listener for PlaylistView {
             event = &Event::Draw;
         }
         self.list
-            .with(&self.playlist.tracks())
+            .items(&self.playlist.tracks())
             .process_event(event, ui);
     }
 }
