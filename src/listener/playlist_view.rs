@@ -22,9 +22,11 @@ impl Listener for PlaylistView {
             let playlist_tracks = self.playlist.tracks();
             playlist_tracks.drain(..);
             playlist_tracks.extend_from_slice(tracks);
+            self.list.reset();
 
             event = &Event::Draw;
         }
+
         self.list
             .items(&self.playlist.tracks())
             .process_event(event, ui);
@@ -35,7 +37,8 @@ impl IntoListener for Playlist {
     type LType = PlaylistView;
 
     fn into_listener(self, layout: &Layout) -> Self::LType {
-        let list = List::new(layout, |layout| layout.playlist.clone());
+        let mut list = List::new(layout, |layout| layout.playlist.clone());
+        list.disable();
 
         Self::LType {
             list,

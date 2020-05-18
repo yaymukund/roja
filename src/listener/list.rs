@@ -14,6 +14,7 @@ pub struct List {
     start_index: u16,
     selected_index: u16,
     make_canvas: Box<dyn Fn(&Layout) -> Canvas>,
+    disabled: bool,
 }
 
 pub struct ListExecutor<'a, R: ListRow> {
@@ -30,10 +31,28 @@ impl List {
         let canvas = make_canvas(layout);
         Self {
             canvas,
+            disabled: false,
             make_canvas: Box::new(make_canvas),
             start_index: 0,
             selected_index: 0,
         }
+    }
+
+    fn is_disabled(&self) -> bool {
+        self.disabled
+    }
+
+    pub fn disable(&mut self) {
+        self.disabled = true;
+    }
+
+    pub fn enable(&mut self) {
+        self.disabled = false;
+    }
+
+    pub fn reset(&mut self) {
+        self.start_index = 0;
+        self.selected_index = 0;
     }
 
     pub fn items<'a, R>(&'a mut self, items: &'a Vec<R>) -> ListExecutor<'a, R>
@@ -62,11 +81,19 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
             return;
         }
 
-        let old_selected_index = self.list.selected_index;
-
         match event {
             Event::Draw => self.draw_all(),
             Event::ResizeListener(layout) => self.resize_canvas(&layout),
+            _ => {}
+        }
+
+        if self.list.is_disabled() {
+            return;
+        }
+
+        let old_selected_index = self.list.selected_index;
+
+        match event {
             Event::MoveDown => self.scroll_down(),
             Event::MoveUp => self.scroll_up(),
             Event::PageDown => self.scroll_page_down(),

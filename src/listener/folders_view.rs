@@ -16,7 +16,7 @@ pub struct FoldersView {
 impl Listener for FoldersView {
     fn on_event(&mut self, event: &Event, ui: &mut State) {
         self.list
-            .with(&self.folders)
+            .items(&self.folders)
             .on_highlight(|folder, ui| {
                 ui.dispatch(Event::SelectFolder(folder.id()));
             })
