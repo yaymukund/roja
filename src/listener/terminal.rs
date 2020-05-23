@@ -8,6 +8,7 @@ pub struct Terminal;
 impl Listener for Terminal {
     fn on_event(&mut self, event: &Event, ui: &mut State) {
         match *event {
+            // Event::FocusNext => self.focus_next(),
             Event::Tick => self.wait_event(ui),
             Event::Quit => ui.stop(),
             Event::Resize(cols, rows) => {

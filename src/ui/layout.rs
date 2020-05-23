@@ -1,15 +1,4 @@
-use crossterm::style::Color;
-
 use crate::util::Canvas;
-
-#[derive(Debug, Clone)]
-pub struct Colors {
-    pub highlight: Color,
-    pub highlight_bg: Color,
-    pub divider: Color,
-    pub progress_bar_fill: Color,
-    pub progress_bar_empty: Color,
-}
 
 #[derive(Debug, Clone)]
 pub struct Layout {
@@ -17,7 +6,6 @@ pub struct Layout {
     pub player: Canvas,
     pub playlist: Canvas,
     pub window: Canvas,
-    pub colors: Colors,
 }
 
 const CENTER_MARGIN: u16 = 1;
@@ -55,17 +43,6 @@ impl Layout {
             player,
             playlist,
             window,
-            colors: Colors {
-                highlight: Color::White,
-                highlight_bg: Color::Magenta,
-                divider: Color::Rgb {
-                    r: 57,
-                    g: 59,
-                    b: 96,
-                },
-                progress_bar_fill: Color::Magenta,
-                progress_bar_empty: Color::Green,
-            },
         }
     }
 }

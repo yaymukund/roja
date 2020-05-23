@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
+
+use crate::Settings;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Folder {
@@ -50,10 +52,8 @@ struct Database {
     folders: Vec<Folder>,
 }
 
-pub fn read_json<P>(path: P) -> (Vec<Folder>, TrackIndex)
-where
-    P: AsRef<Path>,
-{
+pub fn read_json() -> (Vec<Folder>, TrackIndex) {
+    let path = Settings::global().metadata_path();
     let file = File::open(path).expect("Could not open metadata file");
     let reader = BufReader::new(file);
     let database: Database =

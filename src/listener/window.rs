@@ -1,7 +1,8 @@
-use crossterm::style::{style, Color};
+use crossterm::style::style;
 
 use crate::ui::{Event, IntoListener, Layout, Listener, State};
 use crate::util::Canvas;
+use crate::Settings;
 
 pub struct Window;
 
@@ -13,7 +14,6 @@ const TR_CORNER: &str = "┐";
 pub struct WindowView {
     canvas: Canvas,
     player_y: u16,
-    divider_color: Color,
 }
 
 impl WindowView {
@@ -23,7 +23,7 @@ impl WindowView {
 
     fn draw(&self) {
         let offset = self.folder_view_width();
-        let vline = style(VLINE).with(self.divider_color);
+        let vline = style(VLINE).with(*Settings::global().colors().divider());
 
         for y in 0..self.player_y {
             self.canvas
@@ -54,7 +54,6 @@ impl IntoListener for Window {
         Self::LType {
             canvas: layout.window.clone(),
             player_y: layout.player.point().y(),
-            divider_color: layout.colors.divider,
         }
     }
 }

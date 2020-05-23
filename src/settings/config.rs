@@ -1,3 +1,4 @@
+use super::Colors;
 use serde::Deserialize;
 use std::fs::File;
 use std::io::BufReader;
@@ -8,6 +9,7 @@ pub struct Config {
     pub music_library_path: PathBuf,
     pub metadata_path: PathBuf,
     pub metadata_index_path: PathBuf,
+    pub colors: Colors,
 }
 
 impl Config {
