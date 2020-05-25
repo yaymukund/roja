@@ -10,16 +10,19 @@ pub fn size() -> (u16, u16) {
     terminal::size().expect("could not determine size of terminal")
 }
 
-pub fn write_at(point: &Point, text: &str) {
+pub fn draw_at<T>(point: &Point, text: T)
+where
+    T: AsRef<str> + Display + Clone,
+{
     queue!(
         stdout(),
         cursor::MoveTo(point.x(), point.y()),
         style::Print(text)
     )
-    .expect("could not write text to stdout");
+    .expect("could not draw text to stdout");
 }
 
-pub fn write_styled_at<D>(point: &Point, text: StyledContent<D>)
+pub fn draw_styled_at<D>(point: &Point, text: StyledContent<D>)
 where
     D: Display + Clone,
 {
@@ -28,7 +31,7 @@ where
         cursor::MoveTo(point.x(), point.y()),
         style::PrintStyledContent(text)
     )
-    .expect("could not write styled text to stdout");
+    .expect("could not draw styled text to stdout");
 }
 
 pub fn init() {

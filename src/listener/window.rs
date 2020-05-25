@@ -1,8 +1,5 @@
-use crossterm::style::style;
-
-use crate::ui::{Event, IntoListener, Layout, Listener, State};
+use crate::ui::{Event, IntoListener, Label, Layout, Listener, State};
 use crate::util::Canvas;
-use crate::Settings;
 
 pub struct Window;
 
@@ -23,13 +20,12 @@ impl WindowView {
 
     fn draw(&self) {
         let offset = self.folder_view_width();
-        let vline = style(VLINE).with(*Settings::global().colors().divider());
 
         for y in 0..self.player_y {
             self.canvas
                 .right(offset)
                 .down(y)
-                .write_styled(vline.clone());
+                .draw(VLINE, Label::WindowDivider);
         }
     }
 }

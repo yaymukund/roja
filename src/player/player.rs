@@ -3,10 +3,11 @@ use mpv::Mpv;
 
 use super::player_property::PlayerProperty;
 
-pub const PROPERTIES: [PlayerProperty; 3] = [
+pub const PROPERTIES: [PlayerProperty; 4] = [
     PlayerProperty::Elapsed,
     PlayerProperty::Duration,
     PlayerProperty::Pause,
+    PlayerProperty::MediaTitle,
 ];
 
 pub struct Player {
@@ -84,6 +85,18 @@ impl Player {
     pub fn paused(&self) -> bool {
         let pause: String = self.mpv.get_property("pause").unwrap();
         pause == "yes"
+    }
+
+    pub fn title(&self) -> String {
+        self.mpv
+            .get_property("media-title")
+            .unwrap_or_else(|_| String::from(""))
+    }
+
+    pub fn artist(&self) -> String {
+        self.mpv
+            .get_property("metadata/by-key/artist")
+            .unwrap_or_else(|_| String::from(""))
     }
 
     pub fn idle_active(&self) -> bool {

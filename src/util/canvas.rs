@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::terminal;
+use crate::ui::Label;
 
 #[macro_export]
 macro_rules! point {
@@ -46,16 +46,11 @@ impl Point {
         Self::new(self.x, self.y - offset)
     }
 
-    pub fn write(&self, text: &str) -> &Self {
-        terminal::write_at(self, text);
-        self
-    }
-
-    pub fn write_styled<D>(&self, text: terminal::StyledContent<D>) -> &Self
+    pub fn draw<T>(&self, text: T, label: Label) -> &Self
     where
-        D: Display + Clone,
+        T: AsRef<str> + Clone + Display,
     {
-        terminal::write_styled_at(self, text);
+        label.draw_at(self, text);
         self
     }
 }
@@ -108,17 +103,11 @@ impl Canvas {
     }
 
     #[allow(dead_code)]
-    pub fn write(&self, text: &str) -> &Self {
-        self.point.write(text);
-        self
-    }
-
-    #[allow(dead_code)]
-    pub fn write_styled<D>(&self, text: terminal::StyledContent<D>) -> &Self
+    pub fn draw<T>(&self, text: T, label: Label) -> &Self
     where
-        D: Display + Clone,
+        T: AsRef<str> + Clone + Display,
     {
-        self.point.write_styled(text);
+        self.point.draw(text, label);
         self
     }
 }

@@ -1,8 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crossterm::{style, style::Styler};
-
-use crate::ui::{Event, Layout, State};
+use crate::ui::{Event, Label, Layout, State};
 use crate::util::{truncate, usize_to_u16, Canvas};
 
 pub trait ListRow {
@@ -136,7 +134,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
 
         if index >= self.items_len() {
             let text = &format!(" {:space$} ", "", space = total_width.into());
-            point.write(text);
+            point.draw(text, Label::ListRow);
             return;
         }
 
@@ -149,15 +147,13 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
             space = usize::from(total_width - text_width)
         );
 
-        if index == self.list.selected_index {
-            let text = style::style(text)
-                .bold()
-                .with(style::Color::White)
-                .on(style::Color::Magenta);
-            point.write_styled(text);
+        let label = if index == self.list.selected_index {
+            Label::ListHighlightedRow
         } else {
-            point.write(text);
-        }
+            Label::ListRow
+        };
+
+        point.draw(text, label);
     }
 
     fn draw_all(&self) {

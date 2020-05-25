@@ -29,6 +29,7 @@ pub enum Event {
     ChangeTotalTime(i64),
     ChangeCurrentTime(i64),
     ChangeIndicator,
+    ChangeTitle,
 
     // other
     UnknownMpvEvent,
@@ -49,6 +50,11 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 change: PropertyData::Int64(new_duration),
                 ..
             } => Event::ChangeTotalTime(new_duration),
+
+            MpvEvent::PropertyChange {
+                name: "media-title",
+                ..
+            } => Event::ChangeTitle,
 
             MpvEvent::PropertyChange { name: "pause", .. } => Event::ChangeIndicator,
 

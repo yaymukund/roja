@@ -21,9 +21,9 @@ impl Layout {
     pub fn new(width: u16, height: u16) -> Self {
         let window = Canvas::new(point!(0, 0), width, height);
         let player = Canvas::new(
-            point!(PLAYER_LEFT_MARGIN, height - BOTTOM_MARGIN - 1),
+            point!(PLAYER_LEFT_MARGIN, height - BOTTOM_MARGIN - 2),
             width - PLAYER_LEFT_MARGIN - PLAYER_RIGHT_MARGIN,
-            1,
+            2,
         );
 
         let folder_view_width = Self::folder_view_width(width);

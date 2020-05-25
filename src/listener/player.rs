@@ -1,29 +1,33 @@
-use crossterm::style::style;
-
 use crate::player::Player;
-use crate::ui::{Event, IntoListener, Layout, Listener, State};
-use crate::util::{format_duration, Canvas};
-use crate::Settings;
+use crate::ui::{Event, IntoListener, Label, Layout, Listener, State};
+use crate::util::{format_duration, Canvas, Point};
 
 //
 // Basically, we're trying to render the following:
 //
-// MI CCCCCC/TTTTTT PPPPPPPPP->M
+// MAAAAAAAAAAAAAAAAAAAAAAAAAAAAM
+// MI CCCCCC/TTTTTT PPPPPPPPPP->M
+//
+//  Taylor Swift - 1989
 //  > -12:34/-23:45 ===--------
 //
 // Where:
 //
+// A: Artist and Song Name
 // M: Margin
 // I: Indicator
 // C: Current Time
 // T: Total Time
 // P: Progress (This stretches to fill the remaining space)
 //
+const MARGIN_LEFT: u16 = 1;
 const MARGIN_RIGHT: u16 = 1;
-const OFFSET_INDICATOR: u16 = 0;
+const OFFSET_INDICATOR: u16 = MARGIN_LEFT;
+const OFFSET_INDICATOR_RMARGIN: u16 = OFFSET_INDICATOR + 1;
 const OFFSET_CURRENT_TIME: u16 = OFFSET_INDICATOR + 2;
 const OFFSET_SLASH: u16 = OFFSET_CURRENT_TIME + 6;
 const OFFSET_TOTAL_TIME: u16 = OFFSET_SLASH + 1;
+const OFFSET_TOTAL_TIME_RMARGIN: u16 = OFFSET_TOTAL_TIME + 6;
 const OFFSET_PROGRESS: u16 = OFFSET_TOTAL_TIME + 7;
 
 const INDICATOR_PAUSED: char = '|';
@@ -55,37 +59,69 @@ impl PlayerComponent {
             INDICATOR_PLAYING
         };
 
-        self.canvas
+        self.controls()
             .right(OFFSET_INDICATOR)
-            .write(&indicator.to_string());
+            .draw(&indicator.to_string(), Label::PlayerControls);
     }
 
     fn draw_current_time(&self, current_time: i64) {
         let current_time = format!("{:>6}", format_duration(current_time));
-        self.canvas.right(OFFSET_CURRENT_TIME).write(&current_time);
+        self.controls()
+            .right(OFFSET_CURRENT_TIME)
+            .draw(&current_time, Label::PlayerControls);
     }
 
     fn draw_total_time(&self, total_time: i64) {
         let total_time = format!("{:<6}", format_duration(total_time));
-        self.canvas.right(OFFSET_TOTAL_TIME).write(&total_time);
+        self.controls()
+            .right(OFFSET_TOTAL_TIME)
+            .draw(&total_time, Label::PlayerControls);
     }
 
     fn draw_progress(&self) {
         let percent_complete = self.player.percent_complete();
-        let cols = self.canvas.width() - OFFSET_PROGRESS - MARGIN_RIGHT;
+        let cols = self.canvas.width() - OFFSET_PROGRESS;
         let filled = (cols * percent_complete) / 100;
-        let empty = cols - filled;
+        let empty = cols - filled - MARGIN_RIGHT;
+        let filled_bar = "━".repeat(filled as usize);
+        let empty_bar = "─".repeat(empty as usize);
 
-        let filled_bar = style("━".repeat(filled as usize))
-            .with(*Settings::global().colors().progress_bar_fill());
-        let empty_bar = style("─".repeat(empty as usize))
-            .with(*Settings::global().colors().progress_bar_empty());
-
-        self.canvas
+        self.controls()
             .right(OFFSET_PROGRESS)
-            .write_styled(filled_bar)
+            .draw(&filled_bar, Label::PlayerProgress)
             .right(filled)
-            .write_styled(empty_bar);
+            .draw(&empty_bar, Label::PlayerProgressEmpty);
+    }
+
+    fn draw_info(&self) {
+        let width = self.canvas.width();
+        let now_playing = format!("{} - {}", self.player.artist(), self.player.title());
+        let info = format!(
+            " ♫ {:space$} ",
+            now_playing,
+            space = (width - MARGIN_LEFT - MARGIN_RIGHT - 2).into()
+        );
+
+        self.canvas.draw(info, Label::PlayerInfoBar);
+    }
+
+    fn draw_margins(&self) {
+        let rmargin_offset = self.canvas.width() - MARGIN_RIGHT;
+
+        for offset in &[
+            0,
+            OFFSET_TOTAL_TIME_RMARGIN,
+            OFFSET_INDICATOR_RMARGIN,
+            rmargin_offset,
+        ] {
+            self.controls()
+                .right(*offset)
+                .draw(" ", Label::PlayerControls);
+        }
+    }
+
+    fn controls(&self) -> Point {
+        self.canvas.down(1)
     }
 
     fn should_draw(&self) -> bool {
@@ -93,8 +129,12 @@ impl PlayerComponent {
     }
 
     fn draw(&self) {
+        self.draw_margins();
+        self.draw_info();
         self.draw_indicator();
-        self.canvas.right(OFFSET_SLASH).write("/");
+        self.controls()
+            .right(OFFSET_SLASH)
+            .draw("/", Label::PlayerControls);
         self.draw_current_time(self.player.elapsed());
         self.draw_total_time(self.player.duration());
         self.draw_progress();
@@ -115,7 +155,9 @@ impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event, ui: &mut State) {
         match event {
             Event::ResizeListener(layout) => self.resize(layout),
-            Event::Tick => self.wait_event(ui),
+            Event::Tick => {
+                self.wait_event(ui);
+            }
             Event::SeekForward => self.player.seek_forward(),
             Event::SeekBackward => self.player.seek_backward(),
             Event::TogglePause => self.player.toggle_pause(),
@@ -131,6 +173,7 @@ impl Listener for PlayerComponent {
             Event::SeekForward | Event::SeekBackward => {
                 self.draw_current_time(self.player.elapsed())
             }
+            Event::ChangeTitle => self.draw_info(),
             Event::ChangeIndicator | Event::TogglePause => self.draw_indicator(),
             Event::ChangeCurrentTime(secs) => {
                 self.draw_current_time(*secs);
