@@ -2,7 +2,8 @@ use std::rc::Rc;
 
 use super::{List, ListRow};
 use crate::library::{Playlist, Track};
-use crate::ui::{Event, IntoListener, Layout, Listener, State};
+use crate::ui::{layout, Event, IntoListener, Listener};
+use crate::util::channel;
 
 impl ListRow for Rc<Track> {
     fn row_text(&self) -> &str {
@@ -16,7 +17,7 @@ pub struct PlaylistView {
 }
 
 impl Listener for PlaylistView {
-    fn on_event(&mut self, event: &Event, ui: &mut State) {
+    fn on_event(&mut self, event: &Event) {
         let mut event = event;
         if let Event::SetPlaylistTracks(tracks) = event {
             let playlist_tracks = self.playlist.tracks();
@@ -29,15 +30,15 @@ impl Listener for PlaylistView {
 
         self.list
             .items(&self.playlist.tracks())
-            .process_event(event, ui);
+            .process_event(event);
     }
 }
 
 impl IntoListener for Playlist {
     type LType = PlaylistView;
 
-    fn into_listener(self, layout: &Layout) -> Self::LType {
-        let mut list = List::new(layout, |layout| layout.playlist.clone());
+    fn into_listener(self, _sender: channel::Sender<Event>) -> Self::LType {
+        let mut list = List::new(layout::playlist_canvas);
         list.disable();
 
         Self::LType {

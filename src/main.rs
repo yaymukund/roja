@@ -18,7 +18,7 @@ fn main() {
     Settings::init();
 
     let mut ui = UI::new();
-    let terminal = listener::Terminal::new();
+    let terminal = listener::Terminal;
     let (folders, tracks_index) = library::read_json();
     let playlist = library::Playlist::new();
     let player = player::Player::new();
@@ -31,13 +31,9 @@ fn main() {
     ui.register(folders);
     ui.register(player);
     ui.register(playlist);
+    ui.first_draw();
 
-    loop {
+    while let Ok(()) = ui.tick() {
         thread::sleep(time::Duration::from_millis(10));
-        ui.tick();
-
-        if ui.stopped() {
-            break;
-        }
     }
 }

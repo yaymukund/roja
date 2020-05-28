@@ -36,7 +36,6 @@ where
 
 pub fn init() {
     terminal::enable_raw_mode().expect("could not enable raw mode");
-    clear_all();
     queue!(stdout(), cursor::Hide,).expect("could not hide cursor and clear screen");
 }
 

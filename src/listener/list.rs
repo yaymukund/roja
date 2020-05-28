@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::ui::{Event, Label, Layout, State};
+use crate::ui::{Event, Label};
 use crate::util::{truncate, usize_to_u16, Canvas};
 
 pub trait ListRow {
@@ -11,24 +11,23 @@ pub struct List {
     canvas: Canvas,
     start_index: u16,
     selected_index: u16,
-    make_canvas: Box<dyn Fn(&Layout) -> Canvas>,
+    make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     disabled: bool,
 }
 
 pub struct ListExecutor<'a, R: ListRow> {
     list: &'a mut List,
     items: &'a Vec<R>,
-    on_highlight: Option<Box<dyn Fn(&R, &mut State)>>,
+    on_highlight: Option<Box<dyn Fn(&R)>>,
 }
 
 impl List {
-    pub fn new<F: 'static>(layout: &Layout, make_canvas: F) -> Self
+    pub fn new<F: 'static>(make_canvas: F) -> Self
     where
-        F: Fn(&Layout) -> Canvas,
+        F: Fn(u16, u16) -> Canvas,
     {
-        let canvas = make_canvas(layout);
         Self {
-            canvas,
+            canvas: Canvas::Uninitialized,
             disabled: false,
             make_canvas: Box::new(make_canvas),
             start_index: 0,
@@ -68,20 +67,16 @@ impl List {
 impl<'a, R: ListRow> ListExecutor<'a, R> {
     pub fn on_highlight<F: 'static>(&mut self, on_highlight: F) -> &mut Self
     where
-        F: Fn(&R, &mut State),
+        F: Fn(&R),
     {
         self.on_highlight = Some(Box::new(on_highlight));
         self
     }
 
-    pub fn process_event(&mut self, event: &Event, ui: &mut State) {
-        if !self.should_draw() {
-            return;
-        }
-
+    pub fn process_event(&mut self, event: &Event) {
         match event {
-            Event::Draw => self.draw_all(),
-            Event::ResizeListener(layout) => self.resize_canvas(&layout),
+            Event::Draw if self.should_draw() => self.draw_all(),
+            Event::Resize(width, height) => self.resize_canvas(*width, *height),
             _ => {}
         }
 
@@ -102,7 +97,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
         if let Some(on_highlight) = &self.on_highlight {
             if old_selected_index != self.list.selected_index {
                 let item = self.get_item(self.list.selected_index);
-                on_highlight(item, ui);
+                on_highlight(item);
             }
         }
     }
@@ -199,7 +194,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
     }
 
     fn should_draw(&self) -> bool {
-        self.list.canvas.width() > 4
+        self.list.canvas.is_initialized() && self.list.canvas.width() > 4
     }
 
     fn select(&mut self, new_index: u16) {
@@ -233,7 +228,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
         }
     }
 
-    fn resize_canvas(&mut self, layout: &Layout) {
-        self.list.canvas = (&self.list.make_canvas)(layout);
+    fn resize_canvas(&mut self, width: u16, height: u16) {
+        self.list.canvas = (&self.list.make_canvas)(width, height);
     }
 }

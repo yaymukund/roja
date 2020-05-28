@@ -1,6 +1,7 @@
 #[macro_use]
 mod canvas;
 
+pub mod channel;
 mod format_duration;
 pub mod terminal;
 mod unicode;

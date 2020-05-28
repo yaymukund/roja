@@ -1,6 +1,6 @@
 use crate::player::Player;
-use crate::ui::{Event, IntoListener, Label, Layout, Listener, State};
-use crate::util::{format_duration, Canvas, Point};
+use crate::ui::{layout, Event, IntoListener, Label, Listener};
+use crate::util::{channel, format_duration, Canvas, Point};
 
 //
 // Basically, we're trying to render the following:
@@ -36,10 +36,11 @@ const INDICATOR_PLAYING: char = '▶';
 
 impl IntoListener for Player {
     type LType = PlayerComponent;
-    fn into_listener(self, layout: &Layout) -> Self::LType {
+    fn into_listener(self, sender: channel::Sender<Event>) -> Self::LType {
         Self::LType {
             player: self,
-            canvas: layout.player.clone(),
+            canvas: Canvas::Uninitialized,
+            sender,
         }
     }
 }
@@ -47,6 +48,7 @@ impl IntoListener for Player {
 pub struct PlayerComponent {
     player: Player,
     canvas: Canvas,
+    sender: channel::Sender<Event>,
 }
 
 impl PlayerComponent {
@@ -125,7 +127,7 @@ impl PlayerComponent {
     }
 
     fn should_draw(&self) -> bool {
-        self.canvas.width() >= 28
+        self.canvas.is_initialized() && self.canvas.width() >= 28
     }
 
     fn draw(&self) {
@@ -140,23 +142,23 @@ impl PlayerComponent {
         self.draw_progress();
     }
 
-    fn wait_event(&self, ui: &mut State) {
+    fn wait_event(&self) {
         if let Some(event) = self.player.wait_event() {
-            ui.dispatch(event.into());
+            self.sender.send(event.into());
         }
     }
 
-    fn resize(&mut self, layout: &Layout) {
-        self.canvas = layout.player.clone();
+    fn resize(&mut self, width: u16, height: u16) {
+        self.canvas = layout::player_canvas(width, height);
     }
 }
 
 impl Listener for PlayerComponent {
-    fn on_event(&mut self, event: &Event, ui: &mut State) {
+    fn on_event(&mut self, event: &Event) {
         match event {
-            Event::ResizeListener(layout) => self.resize(layout),
+            Event::Resize(width, height) => self.resize(*width, *height),
             Event::Tick => {
-                self.wait_event(ui);
+                self.wait_event();
             }
             Event::SeekForward => self.player.seek_forward(),
             Event::SeekBackward => self.player.seek_backward(),

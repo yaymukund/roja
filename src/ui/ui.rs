@@ -1,42 +1,55 @@
-use super::{Event, EventBus, IntoListener, Listener, State};
-use crate::util::terminal;
+use super::{Event, IntoListener, Listener};
+use crate::util::{channel, terminal};
+
+pub struct QuitError;
 
 pub struct UI {
-    event_bus: EventBus,
-    state: State,
+    listeners: Vec<Box<dyn Listener>>,
+    receiver: channel::Receiver<Event>,
+    sender: channel::Sender<Event>,
 }
 
 impl UI {
     pub fn new() -> Self {
+        let (sender, receiver) = channel::unbounded();
         Self {
-            event_bus: EventBus::new(),
-            state: State::new(),
+            listeners: Vec::new(),
+            receiver,
+            sender,
         }
     }
-    pub fn stopped(&self) -> bool {
-        self.state.stopped()
-    }
 
-    pub fn tick(&mut self) {
-        self.dispatch(Event::Tick);
+    pub fn tick(&mut self) -> Result<(), QuitError> {
+        self.send(&Event::Tick);
 
-        while let Some(event) = self.state.next_event() {
-            self.dispatch(event);
+        loop {
+            match self.receiver.recv() {
+                Some(Event::Quit) => return Err(QuitError),
+                Some(event) => self.send(&event),
+                None => {
+                    terminal::flush();
+                    return Ok(());
+                }
+            }
         }
-
-        terminal::flush();
     }
 
-    fn dispatch(&mut self, event: Event) {
-        self.event_bus.dispatch(event, &mut self.state);
+    pub fn first_draw(&mut self) {
+        let (width, height) = terminal::size();
+        self.send(&Event::Resize(width, height));
+    }
+
+    fn send(&mut self, event: &Event) {
+        for listener in &mut self.listeners {
+            listener.on_event(event)
+        }
     }
 
     pub fn register<D>(&mut self, data: D)
     where
         D: 'static + IntoListener,
     {
-        let mut listener = data.into_listener(self.state.layout());
-        listener.on_event(&Event::Draw, &mut self.state);
-        self.event_bus.register(Box::new(listener));
+        let listener = data.into_listener(self.sender.clone());
+        self.listeners.push(Box::new(listener));
     }
 }

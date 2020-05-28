@@ -4,13 +4,11 @@ use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers}
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
 use crate::library::Track;
-use crate::ui::Layout;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Event {
     Tick,
     Resize(u16, u16),
-    ResizeListener(Layout),
     Draw,
     SelectFolder(usize),
     SetPlaylistTracks(Vec<Rc<Track>>),

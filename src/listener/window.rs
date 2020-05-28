@@ -1,5 +1,5 @@
-use crate::ui::{Event, IntoListener, Label, Layout, Listener, State};
-use crate::util::Canvas;
+use crate::ui::{layout, Event, IntoListener, Label, Listener};
+use crate::util::{channel, Canvas};
 
 pub struct Window;
 
@@ -15,7 +15,7 @@ pub struct WindowView {
 
 impl WindowView {
     fn folder_view_width(&self) -> u16 {
-        Layout::folder_view_width(self.canvas.width())
+        layout::folders_view_width(self.canvas.width())
     }
 
     fn draw(&self) {
@@ -31,11 +31,11 @@ impl WindowView {
 }
 
 impl Listener for WindowView {
-    fn on_event(&mut self, event: &Event, _ui: &mut State) {
+    fn on_event(&mut self, event: &Event) {
         match event {
-            Event::ResizeListener(layout) => {
-                self.canvas = layout.window.clone();
-                self.player_y = layout.player.point().y();
+            Event::Resize(width, height) => {
+                self.canvas = layout::window_canvas(*width, *height);
+                self.player_y = layout::player_y(*height);
             }
             Event::Draw => self.draw(),
             _ => {}
@@ -46,10 +46,10 @@ impl Listener for WindowView {
 impl IntoListener for Window {
     type LType = WindowView;
 
-    fn into_listener(self, layout: &Layout) -> Self::LType {
+    fn into_listener(self, _sender: channel::Sender<Event>) -> Self::LType {
         Self::LType {
-            canvas: layout.window.clone(),
-            player_y: layout.player.point().y(),
+            canvas: Canvas::Uninitialized,
+            player_y: 0,
         }
     }
 }

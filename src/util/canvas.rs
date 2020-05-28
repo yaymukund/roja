@@ -2,6 +2,11 @@ use std::fmt::Display;
 
 use crate::ui::Label;
 
+pub enum Canvas {
+    Uninitialized,
+    Initialized(Area),
+}
+
 #[macro_export]
 macro_rules! point {
     ( $x:expr , $y:expr ) => {{
@@ -36,16 +41,6 @@ impl Point {
         Self::new(self.x, self.y + offset)
     }
 
-    #[allow(dead_code)]
-    pub fn left(&self, offset: u16) -> Self {
-        Self::new(self.x - offset, self.y)
-    }
-
-    #[allow(dead_code)]
-    pub fn up(&self, offset: u16) -> Self {
-        Self::new(self.x, self.y - offset)
-    }
-
     pub fn draw<T>(&self, text: T, label: Label) -> &Self
     where
         T: AsRef<str> + Clone + Display,
@@ -56,7 +51,7 @@ impl Point {
 }
 
 #[derive(Clone, Debug)]
-pub struct Canvas {
+pub struct Area {
     point: Point,
     width: u16,
     height: u16,
@@ -64,50 +59,53 @@ pub struct Canvas {
 
 impl Canvas {
     pub fn new(point: Point, width: u16, height: u16) -> Self {
-        Self {
+        Self::Initialized(Area {
             point,
             width,
             height,
+        })
+    }
+
+    fn area(&self) -> &Area {
+        match self {
+            Self::Uninitialized => panic!("canvas not initialized yet"),
+            Self::Initialized(area) => &area,
+        }
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        match self {
+            Self::Uninitialized => false,
+            _ => true,
         }
     }
 
     pub fn width(&self) -> u16 {
-        self.width
+        self.area().width
     }
 
     pub fn height(&self) -> u16 {
-        self.height
+        self.area().height
     }
 
     pub fn point(&self) -> &Point {
-        &self.point
+        &self.area().point
     }
 
     pub fn right(&self, offset: u16) -> Point {
-        self.point.right(offset)
+        self.area().point.right(offset)
     }
 
     #[allow(dead_code)]
     pub fn down(&self, offset: u16) -> Point {
-        self.point.down(offset)
+        self.area().point.down(offset)
     }
 
-    #[allow(dead_code)]
-    pub fn left(&self, offset: u16) -> Point {
-        self.point.left(offset)
-    }
-
-    #[allow(dead_code)]
-    pub fn up(&self, offset: u16) -> Point {
-        self.point.up(offset)
-    }
-
-    #[allow(dead_code)]
     pub fn draw<T>(&self, text: T, label: Label) -> &Self
     where
         T: AsRef<str> + Clone + Display,
     {
-        self.point.draw(text, label);
+        self.area().point.draw(text, label);
         self
     }
 }
