@@ -34,9 +34,8 @@ impl IntoListener for Focus {
 
 impl Listener for FocusListener {
     fn on_event(&mut self, event: &Event) {
-        match *event {
-            Event::TabFocus => self.tab_focus(),
-            _ => {}
+        if let Event::TabFocus = event {
+            self.tab_focus();
         }
     }
 }

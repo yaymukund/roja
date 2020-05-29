@@ -4,9 +4,6 @@ use crate::util::{channel, Canvas};
 pub struct Window;
 
 const VLINE: &str = "│";
-const HLINE: &str = "─";
-const TL_CORNER: &str = "┌";
-const TR_CORNER: &str = "┐";
 
 pub struct WindowView {
     canvas: Canvas,
