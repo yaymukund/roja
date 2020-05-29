@@ -29,7 +29,7 @@ impl Player {
 
         // Playback will start when the cache has been filled up with this many
         // kilobytes of data (default: 0).
-        mpv.set_property("cache-secs", 10).unwrap();
+        mpv.set_property("demuxer-max-bytes", "100MiB").unwrap();
 
         // Prefetch next playlist entry while playback of the current entry is
         // ending (default: no). This merely opens the URL of the next playlist
