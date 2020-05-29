@@ -7,4 +7,4 @@ mod ui;
 pub use event::Event;
 pub use label::Label;
 pub use listener::{IntoListener, Listener};
-pub use ui::UI;
+pub use ui::{Section, UI};

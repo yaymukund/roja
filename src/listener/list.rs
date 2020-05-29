@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::ui::{Event, Label};
+use crate::ui::{Event, Label, Section};
 use crate::util::{truncate, usize_to_u16, Canvas};
 
 pub trait ListRow {
@@ -13,25 +13,28 @@ pub struct List {
     selected_index: u16,
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     disabled: bool,
+    section: Section,
 }
 
 pub struct ListExecutor<'a, R: ListRow> {
     list: &'a mut List,
-    items: &'a Vec<R>,
+    items: &'a [R],
     on_highlight: Option<Box<dyn Fn(&R)>>,
+    on_select: Option<Box<dyn Fn(&R)>>,
 }
 
 impl List {
-    pub fn new<F: 'static>(make_canvas: F) -> Self
+    pub fn new<F: 'static>(section: Section, make_canvas: F) -> Self
     where
         F: Fn(u16, u16) -> Canvas,
     {
         Self {
             canvas: Canvas::Uninitialized,
-            disabled: false,
-            make_canvas: Box::new(make_canvas),
             start_index: 0,
             selected_index: 0,
+            make_canvas: Box::new(make_canvas),
+            disabled: false,
+            section,
         }
     }
 
@@ -52,7 +55,7 @@ impl List {
         self.selected_index = 0;
     }
 
-    pub fn items<'a, R>(&'a mut self, items: &'a Vec<R>) -> ListExecutor<'a, R>
+    pub fn items<'a, R>(&'a mut self, items: &'a [R]) -> ListExecutor<'a, R>
     where
         R: ListRow,
     {
@@ -60,6 +63,7 @@ impl List {
             list: self,
             items,
             on_highlight: None,
+            on_select: None,
         }
     }
 }
@@ -73,10 +77,20 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
         self
     }
 
+    pub fn on_select<F: 'static>(&mut self, on_select: F) -> &mut Self
+    where
+        F: Fn(&R),
+    {
+        self.on_select = Some(Box::new(on_select));
+        self
+    }
+
     pub fn process_event(&mut self, event: &Event) {
         match event {
             Event::Draw if self.should_draw() => self.draw_all(),
             Event::Resize(width, height) => self.resize_canvas(*width, *height),
+            Event::Focus(section) => self.change_focus(*section),
+            Event::Enter => self.try_select_item(),
             _ => {}
         }
 
@@ -96,10 +110,19 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
 
         if let Some(on_highlight) = &self.on_highlight {
             if old_selected_index != self.list.selected_index {
-                let item = self.get_item(self.list.selected_index);
-                on_highlight(item);
+                on_highlight(self.selected_item());
             }
         }
+    }
+
+    fn try_select_item(&self) {
+        if let Some(on_select) = &self.on_select {
+            on_select(self.selected_item());
+        }
+    }
+
+    fn selected_item(&self) -> &R {
+        self.get_item(self.list.selected_index)
     }
 
     fn get_item(&self, index: u16) -> &R {
@@ -120,6 +143,14 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
 
     fn visible_indices(&self) -> RangeInclusive<u16> {
         self.list.start_index..=self.end_index()
+    }
+
+    fn highlighted_label(&self) -> Label {
+        if self.list.is_disabled() {
+            Label::ListDisabledHighlightedRow
+        } else {
+            Label::ListEnabledHighlightedRow
+        }
     }
 
     fn draw_row(&self, position: u16) {
@@ -143,7 +174,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
         );
 
         let label = if index == self.list.selected_index {
-            Label::ListHighlightedRow
+            self.highlighted_label()
         } else {
             Label::ListRow
         };
@@ -230,5 +261,15 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
 
     fn resize_canvas(&mut self, width: u16, height: u16) {
         self.list.canvas = (&self.list.make_canvas)(width, height);
+    }
+
+    fn change_focus(&mut self, section: Section) {
+        if self.list.section == section {
+            self.list.enable();
+        } else {
+            self.list.disable();
+        }
+
+        self.draw_row(self.selected_position());
     }
 }

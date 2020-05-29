@@ -53,6 +53,10 @@ impl Settings {
         &self.config.metadata_path
     }
 
+    pub fn music_library_path(&self) -> &PathBuf {
+        &self.config.music_library_path
+    }
+
     pub fn colors(&self) -> &Colors {
         &self.config.colors
     }

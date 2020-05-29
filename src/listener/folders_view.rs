@@ -1,6 +1,6 @@
 use super::{List, ListRow};
 use crate::library::Folder;
-use crate::ui::{layout, Event, IntoListener, Listener};
+use crate::ui::{layout, Event, IntoListener, Listener, Section};
 use crate::util::channel;
 
 impl ListRow for Folder {
@@ -32,7 +32,7 @@ impl IntoListener for Vec<Folder> {
     type LType = FoldersView;
 
     fn into_listener(self, sender: channel::Sender<Event>) -> Self::LType {
-        let list = List::new(layout::folders_view_canvas);
+        let list = List::new(Section::FoldersList, layout::folders_view_canvas);
 
         Self::LType {
             list,

@@ -27,5 +27,5 @@ impl<T> Receiver<T> {
 pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     let data = VecDeque::new();
     let data = Rc::new(RefCell::new(data));
-    (Sender { data: data.clone() }, Receiver { data: data })
+    (Sender { data: data.clone() }, Receiver { data })
 }

@@ -44,6 +44,10 @@ impl Track {
     pub fn title(&self) -> &str {
         &self.title
     }
+
+    pub fn path(&self) -> &PathBuf {
+        &self.path
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -75,7 +79,7 @@ impl TrackIndex {
         for track in input_tracks {
             let track_ids = folder_track_ids
                 .entry(track.folder_id)
-                .or_insert_with(|| Vec::new());
+                .or_insert_with(Vec::new);
             track_ids.push(track.id);
             tracks.insert(track.id, Rc::new(track));
         }

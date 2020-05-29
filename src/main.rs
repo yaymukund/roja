@@ -23,9 +23,8 @@ fn main() {
     let playlist = library::Playlist::new();
     let player = player::Player::new();
 
-    player.play("http://localhost:3000/song.mp3");
-
     ui.register(listener::Window);
+    ui.register(listener::Focus);
     ui.register(tracks_index);
     ui.register(terminal);
     ui.register(folders);

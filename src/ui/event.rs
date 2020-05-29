@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
 use mpv::events::simple::{Event as MpvEvent, PropertyData};
 
+use super::Section;
 use crate::library::Track;
 
 #[derive(Debug, Clone)]
@@ -12,6 +13,8 @@ pub enum Event {
     Draw,
     SelectFolder(usize),
     SetPlaylistTracks(Vec<Rc<Track>>),
+    Focus(Section),
+    PlayTrack(Rc<Track>),
 
     // Keyboard Input
     Quit,
@@ -22,6 +25,8 @@ pub enum Event {
     PageDown,
     PageUp,
     TogglePause,
+    TabFocus,
+    Enter,
 
     // MPV Events
     ChangeTotalTime(i64),
@@ -85,6 +90,8 @@ fn from_key_event(code: KeyCode, modifiers: KeyModifiers) -> Event {
         KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
         KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
         KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
+        KeyCode::Tab => Event::TabFocus,
+        KeyCode::Enter => Event::Enter,
         KeyCode::Char('c') => Event::TogglePause,
         KeyCode::Char('q') => Event::Quit,
         _ => Event::UnknownCrosstermEvent,

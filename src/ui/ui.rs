@@ -3,6 +3,12 @@ use crate::util::{channel, terminal};
 
 pub struct QuitError;
 
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub enum Section {
+    FoldersList,
+    Playlist,
+}
+
 pub struct UI {
     listeners: Vec<Box<dyn Listener>>,
     receiver: channel::Receiver<Event>,

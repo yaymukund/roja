@@ -1,3 +1,4 @@
+use crate::library::Track;
 use crate::player::Player;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
 use crate::util::{channel, format_duration, Canvas, Point};
@@ -151,11 +152,16 @@ impl PlayerComponent {
     fn resize(&mut self, width: u16, height: u16) {
         self.canvas = layout::player_canvas(width, height);
     }
+
+    fn play_track(&self, track: &Track) {
+        self.player.play(track.path());
+    }
 }
 
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
+            Event::PlayTrack(track) => self.play_track(track),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::Tick => {
                 self.wait_event();

@@ -18,7 +18,7 @@ impl<'de> Deserialize<'de> for SColor {
         // Deserialize the string and get individual components
         let color = String::deserialize(deserializer)?;
 
-        if !color.starts_with("#") {
+        if !color.starts_with('#') {
             D::Error::custom("Does not start with '#'");
         }
 

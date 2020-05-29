@@ -10,7 +10,8 @@ pub enum Label {
     PlayerInfoBar,
     PlayerProgress,
     PlayerProgressEmpty,
-    ListHighlightedRow,
+    ListEnabledHighlightedRow,
+    ListDisabledHighlightedRow,
     ListRow,
     WindowDivider,
 }
@@ -23,14 +24,15 @@ impl Label {
         match *self {
             PlayerControls | PlayerProgress | PlayerProgressEmpty => Some(*colors.controls_bg()),
             PlayerInfoBar => Some(*colors.info_bar_bg()),
-            ListHighlightedRow => Some(*colors.highlight_bg()),
+            ListEnabledHighlightedRow => Some(*colors.highlight_bg_enabled()),
+            ListDisabledHighlightedRow => Some(*colors.highlight_bg_disabled()),
             _ => None,
         }
     }
 
     fn is_bold(&self) -> bool {
         match *self {
-            ListHighlightedRow => true,
+            ListEnabledHighlightedRow | ListDisabledHighlightedRow => true,
             _ => false,
         }
     }
@@ -42,7 +44,7 @@ impl Label {
             PlayerInfoBar => Some(*colors.info_bar()),
             PlayerProgress => Some(*colors.progress_bar_fill()),
             PlayerProgressEmpty => Some(*colors.progress_bar_empty()),
-            ListHighlightedRow => Some(*colors.highlight()),
+            ListEnabledHighlightedRow | ListDisabledHighlightedRow => Some(*colors.highlight()),
             WindowDivider => Some(*colors.divider()),
             _ => None,
         }

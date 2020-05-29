@@ -1,3 +1,7 @@
+use std::fmt::Display;
+use std::path::PathBuf;
+
+use crate::Settings;
 use mpv::events::simple::Event as MpvEvent;
 use mpv::Mpv;
 
@@ -42,8 +46,13 @@ impl Player {
         Player { mpv }
     }
 
-    pub fn play(&self, path: &str) {
-        self.command("loadfile", &[path]);
+    pub fn play(&self, path: &PathBuf) {
+        let path = Settings::global().music_library_path().join(path);
+        let path = format!(
+            "\"{}\"",
+            path.to_str().expect("could not convert path to str")
+        );
+        self.command("loadfile", &[&path]);
     }
 
     #[allow(dead_code)]
@@ -117,9 +126,12 @@ impl Player {
         }
     }
 
-    fn command(&self, name: &str, args: &[&str]) {
+    fn command<T>(&self, name: T, args: &[&str])
+    where
+        T: AsRef<str> + Display,
+    {
         self.mpv
-            .command(name, args)
+            .command(name.as_ref(), args)
             .unwrap_or_else(|e| println!("mpv {} error: {:?}", name, e));
     }
 }
