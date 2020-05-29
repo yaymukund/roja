@@ -83,9 +83,9 @@ impl PlayerComponent {
 
     fn draw_progress(&self) {
         let percent_complete = self.player.percent_complete();
-        let cols = self.canvas.width() - OFFSET_PROGRESS;
+        let cols = self.canvas.width() - OFFSET_PROGRESS - MARGIN_RIGHT;
         let filled = (cols * percent_complete) / 100;
-        let empty = cols - filled - MARGIN_RIGHT;
+        let empty = cols - filled;
         let filled_bar = "━".repeat(filled as usize);
         let empty_bar = "─".repeat(empty as usize);
 
