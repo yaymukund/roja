@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::ui::{Event, Label, Section};
-use crate::util::{truncate, usize_to_u16, Canvas};
+use crate::util::{truncate, Canvas};
 
 pub trait ListRow {
     fn row_text(&self) -> &str;
@@ -126,11 +126,11 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
     }
 
     fn get_item(&self, index: u16) -> &R {
-        &self.items[usize::from(index)]
+        &self.items[index as usize]
     }
 
     fn items_len(&self) -> u16 {
-        usize_to_u16(self.items.len())
+        self.items.len() as u16
     }
 
     fn end_index(&self) -> u16 {
@@ -170,7 +170,7 @@ impl<'a, R: ListRow> ListExecutor<'a, R> {
             " {}{:space$} ",
             text,
             "",
-            space = usize::from(total_width - text_width)
+            space = (total_width - text_width) as usize
         );
 
         let label = if index == self.list.selected_index {
