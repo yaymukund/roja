@@ -56,10 +56,10 @@ impl PlayerComponent {
     fn draw_indicator(&self) {
         let indicator = if self.player.paused() {
             INDICATOR_PAUSED
-        } else if self.player.idle_active() {
-            INDICATOR_IDLE
-        } else {
+        } else if self.player.is_track_loaded() {
             INDICATOR_PLAYING
+        } else {
+            INDICATOR_IDLE
         };
 
         self.controls()
@@ -156,6 +156,24 @@ impl PlayerComponent {
     fn play_track(&self, track: &Track) {
         self.player.play(track.path());
     }
+
+    fn seek_forward(&self) {
+        if self.player.is_track_loaded() {
+            self.player.seek_forward();
+        }
+    }
+
+    fn seek_backward(&self) {
+        if self.player.is_track_loaded() {
+            self.player.seek_backward();
+        }
+    }
+
+    fn toggle_pause(&self) {
+        if self.player.is_track_loaded() {
+            self.player.toggle_pause();
+        }
+    }
 }
 
 impl Listener for PlayerComponent {
@@ -163,12 +181,10 @@ impl Listener for PlayerComponent {
         match event {
             Event::PlayTrack(track) => self.play_track(track),
             Event::Resize(width, height) => self.resize(*width, *height),
-            Event::Tick => {
-                self.wait_event();
-            }
-            Event::SeekForward => self.player.seek_forward(),
-            Event::SeekBackward => self.player.seek_backward(),
-            Event::TogglePause => self.player.toggle_pause(),
+            Event::Tick => self.wait_event(),
+            Event::SeekForward => self.seek_forward(),
+            Event::SeekBackward => self.seek_backward(),
+            Event::TogglePause => self.toggle_pause(),
             _ => {}
         }
 

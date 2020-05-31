@@ -93,31 +93,34 @@ impl Player {
         self.mpv.seek_backward(5.0).expect("couldn't seek backward");
     }
 
+    pub fn toggle_pause(&self) {
+        let next = if self.paused() { "no" } else { "yes" };
+        self.mpv.set_property("pause", next).unwrap();
+    }
+
     pub fn paused(&self) -> bool {
         let pause: String = self.mpv.get_property("pause").unwrap();
         pause == "yes"
     }
 
+    /// track title from the file metadata
     pub fn title(&self) -> String {
         self.mpv
             .get_property("media-title")
             .unwrap_or_else(|_| String::from(""))
     }
 
+    /// track artist from the file metadata
     pub fn artist(&self) -> String {
         self.mpv
             .get_property("metadata/by-key/artist")
             .unwrap_or_else(|_| String::from(""))
     }
 
-    pub fn idle_active(&self) -> bool {
-        let idle_active: String = self.mpv.get_property("idle-active").unwrap();
-        idle_active == "yes"
-    }
-
-    pub fn toggle_pause(&self) {
-        let next = if self.paused() { "no" } else { "yes" };
-        self.mpv.set_property("pause", next).unwrap();
+    /// returns if the mpv handle has loaded a track
+    pub fn is_track_loaded(&self) -> bool {
+        let idle: bool = self.mpv.get_property("idle-active").unwrap();
+        !idle
     }
 
     pub fn wait_event(&self) -> Option<MpvEvent<'_>> {
