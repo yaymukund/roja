@@ -10,8 +10,8 @@ pub enum Label {
     PlayerInfoBar,
     PlayerProgress,
     PlayerProgressEmpty,
-    ListEnabledHighlightedRow,
-    ListDisabledHighlightedRow,
+    ListFocusedHighlightedRow,
+    ListUnfocusedHighlightedRow,
     ListRow,
     WindowDivider,
 }
@@ -21,30 +21,30 @@ use Label::*;
 impl Label {
     fn bg_color(&self) -> Option<Color> {
         let colors = Settings::global().colors();
-        match *self {
+        match self {
             PlayerControls | PlayerProgress | PlayerProgressEmpty => Some(*colors.controls_bg()),
             PlayerInfoBar => Some(*colors.info_bar_bg()),
-            ListEnabledHighlightedRow => Some(*colors.highlight_bg_enabled()),
-            ListDisabledHighlightedRow => Some(*colors.highlight_bg_disabled()),
+            ListFocusedHighlightedRow => Some(*colors.highlight_bg_focused()),
+            ListUnfocusedHighlightedRow => Some(*colors.highlight_bg_unfocused()),
             _ => None,
         }
     }
 
     fn is_bold(&self) -> bool {
         match *self {
-            ListEnabledHighlightedRow | ListDisabledHighlightedRow => true,
+            ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => true,
             _ => false,
         }
     }
 
     fn color(&self) -> Option<Color> {
         let colors = Settings::global().colors();
-        match *self {
+        match self {
             PlayerControls => Some(*colors.controls()),
             PlayerInfoBar => Some(*colors.info_bar()),
             PlayerProgress => Some(*colors.progress_bar_fill()),
             PlayerProgressEmpty => Some(*colors.progress_bar_empty()),
-            ListEnabledHighlightedRow | ListDisabledHighlightedRow => Some(*colors.highlight()),
+            ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => Some(*colors.highlight()),
             WindowDivider => Some(*colors.divider()),
             _ => None,
         }

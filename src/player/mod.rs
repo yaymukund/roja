@@ -55,6 +55,10 @@ impl Player {
             path.to_str().expect("could not convert path to str")
         );
         self.command("loadfile", &[&path]);
+
+        if self.paused() {
+            self.toggle_pause();
+        }
     }
 
     #[allow(dead_code)]

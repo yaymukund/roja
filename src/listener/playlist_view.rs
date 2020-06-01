@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use super::{List, ListRow};
 use crate::library::{Playlist, Track};
+use crate::listener::{List, ListBuilder, ListRenderer, ListRow};
 use crate::ui::{layout, Event, IntoListener, Listener, Section};
 use crate::util::channel;
 
@@ -12,30 +12,36 @@ impl ListRow for Rc<Track> {
 }
 
 pub struct PlaylistView {
-    sender: channel::Sender<Event>,
-    list: List,
+    list: List<Rc<Track>>,
     playlist: Playlist,
+}
+
+impl PlaylistView {
+    fn set_playlist_tracks(&mut self, tracks: &[Rc<Track>]) {
+        let playlist_tracks = self.playlist.tracks();
+        playlist_tracks.drain(..);
+        playlist_tracks.extend_from_slice(tracks);
+        self.list.reset();
+    }
+
+    fn with_renderer<F>(&mut self, f: F)
+    where
+        F: Fn(&mut ListRenderer<'_, Rc<Track>>),
+    {
+        let tracks = self.playlist.tracks();
+        self.list.with_items(&tracks, |renderer| f(renderer));
+    }
 }
 
 impl Listener for PlaylistView {
     fn on_event(&mut self, event: &Event) {
-        let mut event = event;
-        if let Event::SetPlaylistTracks(tracks) = event {
-            let playlist_tracks = self.playlist.tracks();
-            playlist_tracks.drain(..);
-            playlist_tracks.extend_from_slice(tracks);
-            self.list.reset();
-
-            event = &Event::Draw;
+        match event {
+            Event::SetPlaylistTracks(tracks) => {
+                self.set_playlist_tracks(tracks);
+                self.with_renderer(|e| e.draw());
+            }
+            _ => self.with_renderer(|e| e.process_event(event)),
         }
-
-        let sender = self.sender.clone();
-        self.list
-            .items(&self.playlist.tracks())
-            .on_select(move |track: &Rc<Track>| {
-                sender.send(Event::PlayTrack(track.clone()));
-            })
-            .process_event(event);
     }
 }
 
@@ -43,11 +49,13 @@ impl IntoListener for Playlist {
     type LType = PlaylistView;
 
     fn into_listener(self, sender: channel::Sender<Event>) -> Self::LType {
-        let mut list = List::new(Section::Playlist, layout::playlist_canvas);
-        list.disable();
+        let list = ListBuilder::new()
+            .section(Section::Playlist)
+            .make_canvas(layout::playlist_canvas)
+            .on_select(move |track: &Rc<Track>| sender.send(Event::PlayTrack(track.clone())))
+            .build();
 
         Self::LType {
-            sender,
             list,
             playlist: self,
         }

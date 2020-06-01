@@ -6,8 +6,8 @@ use super::SColor;
 #[derive(Deserialize, Debug)]
 pub struct Colors {
     highlight: SColor,
-    highlight_bg_enabled: SColor,
-    highlight_bg_disabled: SColor,
+    highlight_bg_focused: SColor,
+    highlight_bg_unfocused: SColor,
     divider: SColor,
     progress_bar_fill: SColor,
     progress_bar_empty: SColor,
@@ -21,11 +21,11 @@ impl Colors {
     pub fn highlight(&self) -> &Color {
         self.highlight.as_ref()
     }
-    pub fn highlight_bg_enabled(&self) -> &Color {
-        self.highlight_bg_enabled.as_ref()
+    pub fn highlight_bg_focused(&self) -> &Color {
+        self.highlight_bg_focused.as_ref()
     }
-    pub fn highlight_bg_disabled(&self) -> &Color {
-        self.highlight_bg_disabled.as_ref()
+    pub fn highlight_bg_unfocused(&self) -> &Color {
+        self.highlight_bg_unfocused.as_ref()
     }
     pub fn divider(&self) -> &Color {
         self.divider.as_ref()
