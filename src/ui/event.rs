@@ -14,7 +14,7 @@ pub enum Event {
     SelectFolder(usize),
     SetPlaylistTracks(Vec<Rc<Track>>),
     Focus(Section),
-    PlayTrack(Rc<Track>),
+    QueueTracks(Vec<Rc<Track>>),
 
     // Keyboard Input
     Quit,

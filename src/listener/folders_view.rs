@@ -29,8 +29,9 @@ impl IntoListener for Vec<Folder> {
             .section(Section::FoldersList)
             .autofocus()
             .make_canvas(layout::folders_view_canvas)
-            .on_highlight(move |folder: &Folder| {
-                sender.send(Event::SelectFolder(folder.id()));
+            .on_highlight(move |index: usize, folders: &[Folder]| {
+                let folder_id = folders[index].id();
+                sender.send(Event::SelectFolder(folder_id));
             })
             .build();
 

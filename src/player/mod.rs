@@ -49,11 +49,7 @@ impl Player {
     }
 
     pub fn play(&self, path: &PathBuf) {
-        let path = Settings::global().music_library_path().join(path);
-        let path = format!(
-            "\"{}\"",
-            path.to_str().expect("could not convert path to str")
-        );
+        let path = full_path(path);
         self.command("loadfile", &[&path]);
 
         if self.paused() {
@@ -61,9 +57,9 @@ impl Player {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn append(&self, path: &str) {
-        self.command("loadfile", &[path, "append"]);
+    pub fn append(&self, path: &PathBuf) {
+        let path = full_path(path);
+        self.command("loadfile", &[&path, "append"]);
     }
 
     pub fn elapsed(&self) -> i64 {
@@ -143,4 +139,12 @@ impl Player {
             .command(name.as_ref(), args)
             .unwrap_or_else(|e| println!("mpv {} error: {:?}", name, e));
     }
+}
+
+fn full_path(path: &PathBuf) -> String {
+    let path = Settings::global().music_library_path().join(path);
+    format!(
+        "\"{}\"",
+        path.to_str().expect("could not convert path to str")
+    )
 }

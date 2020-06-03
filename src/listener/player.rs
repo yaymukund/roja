@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::library::Track;
 use crate::player::Player;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
@@ -153,8 +155,11 @@ impl PlayerComponent {
         self.canvas = layout::player_canvas(width, height);
     }
 
-    fn play_track(&self, track: &Track) {
-        self.player.play(track.path());
+    fn queue_tracks(&self, tracks: &Vec<Rc<Track>>) {
+        self.player.play(tracks[0].path());
+        for track in tracks[1..].iter() {
+            self.player.append(track.path());
+        }
     }
 
     fn seek_forward(&self) {
@@ -179,7 +184,7 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
-            Event::PlayTrack(track) => self.play_track(track),
+            Event::QueueTracks(tracks) => self.queue_tracks(tracks),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::Tick => self.wait_event(),
             Event::SeekForward => self.seek_forward(),

@@ -52,7 +52,10 @@ impl IntoListener for Playlist {
         let list = ListBuilder::new()
             .section(Section::Playlist)
             .make_canvas(layout::playlist_canvas)
-            .on_select(move |track: &Rc<Track>| sender.send(Event::PlayTrack(track.clone())))
+            .on_select(move |index: usize, tracks: &[Rc<Track>]| {
+                let tracks = tracks[index..].to_vec();
+                sender.send(Event::QueueTracks(tracks))
+            })
             .build();
 
         Self::LType {

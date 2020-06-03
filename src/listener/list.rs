@@ -7,6 +7,10 @@ pub trait ListRow {
     fn row_text(&self) -> &str;
 }
 
+pub type BoxedCallback<R> = Box<dyn Callback<R>>;
+pub trait Callback<R>: Fn(usize, &[R]) {}
+impl<T, R> Callback<R> for T where T: Fn(usize, &[R]) {}
+
 pub struct List<R: ListRow> {
     canvas: Canvas,
     start_index: u16,
@@ -14,16 +18,16 @@ pub struct List<R: ListRow> {
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     focused: bool,
     section: Section,
-    on_highlight: Option<Box<dyn Fn(&R)>>,
-    on_select: Option<Box<dyn Fn(&R)>>,
+    on_highlight: Option<BoxedCallback<R>>,
+    on_select: Option<BoxedCallback<R>>,
 }
 
 pub struct ListBuilder<R: ListRow> {
     make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
     section: Option<Section>,
     focused: bool,
-    on_highlight: Option<Box<dyn Fn(&R)>>,
-    on_select: Option<Box<dyn Fn(&R)>>,
+    on_highlight: Option<BoxedCallback<R>>,
+    on_select: Option<BoxedCallback<R>>,
 }
 
 pub struct ListRenderer<'a, R: ListRow> {
@@ -62,7 +66,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_highlight<F: 'static>(mut self, on_highlight: F) -> Self
     where
-        F: Fn(&R),
+        F: Callback<R>,
     {
         self.on_highlight = Some(Box::new(on_highlight));
         self
@@ -70,7 +74,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_select<F: 'static>(mut self, on_select: F) -> Self
     where
-        F: Fn(&R),
+        F: Callback<R>,
     {
         self.on_select = Some(Box::new(on_select));
         self
@@ -150,7 +154,7 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
 
         if let Some(on_highlight) = &self.list.on_highlight {
             if old_selected_index != self.list.selected_index {
-                on_highlight(self.selected_item());
+                on_highlight(self.list.selected_index as usize, &self.items);
             }
         }
     }
@@ -161,12 +165,8 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
         }
 
         if let Some(on_select) = &self.list.on_select {
-            on_select(self.selected_item());
+            on_select(self.list.selected_index as usize, &self.items);
         }
-    }
-
-    fn selected_item(&self) -> &R {
-        self.get_item(self.list.selected_index)
     }
 
     fn get_item(&self, index: u16) -> &R {
