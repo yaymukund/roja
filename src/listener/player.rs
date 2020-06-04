@@ -155,7 +155,7 @@ impl PlayerComponent {
         self.canvas = layout::player_canvas(width, height);
     }
 
-    fn queue_tracks(&self, tracks: &Vec<Rc<Track>>) {
+    fn queue_tracks(&self, tracks: &[Rc<Track>]) {
         self.player.play(tracks[0].path());
         for track in tracks[1..].iter() {
             self.player.append(track.path());
