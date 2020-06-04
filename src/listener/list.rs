@@ -1,7 +1,7 @@
 use std::ops::RangeInclusive;
 
 use crate::ui::{Event, Label, Section};
-use crate::util::{truncate, Canvas};
+use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
     fn row_text(&self) -> &str;
@@ -209,13 +209,8 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
         }
 
         let item = self.get_item(index);
-        let (text, text_width) = truncate(item.row_text(), total_width);
-        let text = &format!(
-            " {}{:space$} ",
-            text,
-            "",
-            space = (total_width - text_width) as usize
-        );
+        let text = fit_width(item.row_text(), total_width.into(), true);
+        let text = &format!(" {} ", text,);
 
         let label = if index == self.list.selected_index {
             self.highlighted_label()

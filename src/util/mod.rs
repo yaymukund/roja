@@ -8,4 +8,4 @@ mod unicode;
 
 pub use canvas::{Canvas, Point};
 pub use format_duration::format_duration;
-pub use unicode::truncate;
+pub use unicode::fit_width;

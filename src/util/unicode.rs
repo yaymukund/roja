@@ -1,36 +1,54 @@
 use unicode_segmentation::UnicodeSegmentation;
 use unicode_width::UnicodeWidthStr;
 
-pub fn truncate(text: &str, target_width: u16) -> (&str, u16) {
-    let (index, display_width) = find_truncated_string_end(text, target_width);
-    (&text[..index], display_width)
-}
-
-fn find_truncated_string_end(text: &str, target_width: u16) -> (usize, u16) {
-    let mut display_width = 0;
-
-    for (i, c) in text.grapheme_indices(true) {
-        let cwidth = UnicodeWidthStr::width(c) as u16;
-        let next_display_width = display_width + cwidth;
-
-        if next_display_width > target_width {
-            return (i, display_width);
-        }
-
-        display_width = next_display_width;
+/// truncates the string, optionally with an ellipsis. fills any remaining space with empty string
+pub fn fit_width(text: &str, width: usize, ellipsis: bool) -> String {
+    if width == 0 {
+        return String::new();
     }
 
-    (text.len(), display_width)
+    let mut rem = width;
+    let mut out = String::with_capacity(rem);
+
+    for grapheme in text.graphemes(true) {
+        let gwidth = UnicodeWidthStr::width(grapheme);
+
+        if rem == 0 {
+            if ellipsis {
+                out.pop();
+                out.push('…');
+            }
+
+            return out;
+        }
+
+        if rem >= gwidth {
+            rem -= gwidth;
+            out.push_str(grapheme);
+        } else {
+            if ellipsis {
+                out.push('…');
+            }
+
+            return out;
+        }
+    }
+
+    for _ in 0..rem {
+        out.push(' ');
+    }
+
+    out
 }
 
 #[cfg(test)]
 mod test {
     use super::*;
     #[test]
-    fn test_truncate() {
-        assert_eq!(truncate("", 10), ("", 0));
-        assert_eq!(truncate("a", 10), ("a", 1));
-        assert_eq!(truncate("abcde", 10), ("abcde", 5));
-        assert_eq!(truncate("はじめての", 5), ("はじ", 4));
+    fn test_fit_width() {
+        assert_eq!(fit_width("", 10, true), "          ");
+        assert_eq!(fit_width("a", 10, true), "a         ");
+        assert_eq!(fit_width("abcde", 10, true), "abcde     ");
+        assert_eq!(fit_width("はじめての", 5, true), "はじ…");
     }
 }
