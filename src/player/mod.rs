@@ -3,10 +3,11 @@ mod player_property;
 use std::fmt::Display;
 use std::path::PathBuf;
 
-use crate::Settings;
+use log::debug;
 use mpv::events::simple::Event as MpvEvent;
 use mpv::Mpv;
 
+use crate::Settings;
 use player_property::PlayerProperty;
 
 pub const PROPERTIES: [PlayerProperty; 4] = [
@@ -78,7 +79,10 @@ impl Player {
         let elapsed = self.elapsed() as f64;
         let duration = self.duration() as f64;
         let percent_complete = elapsed / duration * 100.0;
-        if percent_complete > 0.0 {
+
+        if percent_complete > 100.0 {
+            100
+        } else if percent_complete > 0.0 {
             percent_complete as u16
         } else {
             0
@@ -86,11 +90,11 @@ impl Player {
     }
 
     pub fn seek_forward(&self) {
-        self.mpv.seek_forward(5.0).expect("couldn't seek forward");
+        self.command("seek", &["5.0", "relative"]);
     }
 
     pub fn seek_backward(&self) {
-        self.mpv.seek_backward(5.0).expect("couldn't seek backward");
+        self.command("seek", &["-5.0", "relative"]);
     }
 
     pub fn toggle_pause(&self) {
@@ -137,7 +141,7 @@ impl Player {
     {
         self.mpv
             .command(name.as_ref(), args)
-            .unwrap_or_else(|e| println!("mpv {} error: {:?}", name, e));
+            .unwrap_or_else(|e| debug!("mpv {} error: {:?}", name, e));
     }
 }
 
