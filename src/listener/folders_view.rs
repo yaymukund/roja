@@ -1,10 +1,13 @@
-use super::{List, ListBuilder, ListRow};
+use super::{ColumnWidth, List, ListBuilder, ListRow};
 use crate::library::Folder;
 use crate::ui::{layout, Event, IntoListener, Listener, Section};
 use crate::util::channel;
 
+pub struct FolderColumn;
+
 impl ListRow for Folder {
-    fn row_text(&self) -> &str {
+    type Column = FolderColumn;
+    fn column_text(&self, column: &Self::Column) -> &str {
         self.path_str()
     }
 }
@@ -28,6 +31,7 @@ impl IntoListener for Vec<Folder> {
         let list = ListBuilder::new()
             .section(Section::FoldersList)
             .autofocus()
+            .column(FolderColumn, "Folders", ColumnWidth::Auto)
             .make_canvas(layout::folders_view_canvas)
             .on_highlight(move |index: usize, folders: &[Folder]| {
                 let folder_id = folders[index].id();

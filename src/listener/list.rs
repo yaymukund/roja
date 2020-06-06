@@ -1,10 +1,12 @@
+use std::cmp;
 use std::ops::RangeInclusive;
 
 use crate::ui::{Event, Label, Section};
 use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
-    fn row_text(&self) -> &str;
+    type Column;
+    fn column_text(&self, column: &Self::Column) -> &str;
 }
 
 pub type BoxedCallback<R> = Box<dyn Callback<R>>;
@@ -13,6 +15,7 @@ impl<T, R> Callback<R> for T where T: Fn(usize, &[R]) {}
 
 pub struct List<R: ListRow> {
     canvas: Canvas,
+    columns: Vec<ListColumn<R>>,
     start_index: u16,
     selected_index: u16,
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
@@ -22,7 +25,21 @@ pub struct List<R: ListRow> {
     on_select: Option<BoxedCallback<R>>,
 }
 
+struct ListColumn<R: ListRow> {
+    coltype: R::Column,
+    title: String,
+    width: ColumnWidth,
+    calculated_width: u16,
+}
+
+pub enum ColumnWidth {
+    Absolute(u16),
+    Percent(u16),
+    Auto,
+}
+
 pub struct ListBuilder<R: ListRow> {
+    columns: Vec<ListColumn<R>>,
     make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
     section: Option<Section>,
     focused: bool,
@@ -38,6 +55,7 @@ pub struct ListRenderer<'a, R: ListRow> {
 impl<R: ListRow> ListBuilder<R> {
     pub fn new() -> Self {
         Self {
+            columns: Vec::new(),
             make_canvas: None,
             section: None,
             focused: false,
@@ -80,6 +98,16 @@ impl<R: ListRow> ListBuilder<R> {
         self
     }
 
+    pub fn column(mut self, column: R::Column, title: &str, width: ColumnWidth) -> Self {
+        self.columns.push(ListColumn {
+            coltype: column,
+            title: title.to_string(),
+            width,
+            calculated_width: 0,
+        });
+        self
+    }
+
     pub fn build(self) -> List<R> {
         if self.make_canvas.is_none() {
             panic!("missing list builder argument: `make_canvas`");
@@ -88,6 +116,7 @@ impl<R: ListRow> ListBuilder<R> {
         } else {
             List {
                 canvas: Canvas::Uninitialized,
+                columns: self.columns,
                 focused: self.focused,
                 make_canvas: self.make_canvas.unwrap(),
                 on_highlight: self.on_highlight,
@@ -199,18 +228,28 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
 
     fn draw_row(&self, position: u16) {
         let index = self.list.start_index + position;
-        let total_width = self.list.canvas.width().saturating_sub(2);
+        let width = self.list.canvas.width();
         let point = self.list.canvas.point().down(position);
 
-        if index >= self.items_len() {
-            let text = &format!(" {:space$} ", "", space = total_width.into());
-            point.draw(text, Label::ListRow);
-            return;
-        }
+        let mut row_text = String::with_capacity(width as usize);
 
-        let item = self.get_item(index);
-        let text = fit_width(item.row_text(), total_width.into(), true);
-        let text = &format!(" {} ", text,);
+        // draw a blank line if we're past the end
+        if index >= self.items_len() {
+            for _ in 0..width {
+                row_text.push(' ');
+            }
+        } else {
+            // left margin
+            row_text.push(' '); //
+            let item = self.get_item(index);
+
+            for column in &self.list.columns {
+                let text = item.column_text(&column.coltype);
+                let text = fit_width(text, column.calculated_width as usize, true);
+                row_text.push_str(&text);
+                row_text.push(' ');
+            }
+        }
 
         let label = if index == self.list.selected_index {
             self.highlighted_label()
@@ -218,7 +257,46 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
             Label::ListRow
         };
 
-        point.draw(text, label);
+        point.draw(row_text, label);
+    }
+
+    fn calculate_widths(&mut self) {
+        let canvas_width = self
+            .list
+            .canvas
+            .width()
+            // subtract margins
+            .saturating_sub(2)
+            // subtract space in between columns
+            .saturating_sub(self.list.columns.len() as u16 - 1);
+
+        let mut rem_width = canvas_width;
+        let mut auto_count = 0;
+
+        // calculate widths for columns that requested a width
+        for column in &mut self.list.columns {
+            match &column.width {
+                ColumnWidth::Auto => auto_count += 1,
+                width => {
+                    column.calculated_width = match width {
+                        ColumnWidth::Absolute(cols) => *cols,
+                        ColumnWidth::Percent(percent) => cmp::min(
+                            (canvas_width as f32 / 100.0 * *percent as f32).ceil() as u16,
+                            rem_width,
+                        ),
+                        _ => unreachable!(),
+                    };
+
+                    rem_width = rem_width.saturating_sub(column.calculated_width);
+                }
+            }
+        }
+
+        for column in &mut self.list.columns {
+            if let ColumnWidth::Auto = column.width {
+                column.calculated_width = (rem_width as f32 / auto_count as f32).floor() as u16;
+            }
+        }
     }
 
     pub fn draw(&self) {
@@ -304,6 +382,7 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
 
     fn resize_canvas(&mut self, width: u16, height: u16) {
         self.list.canvas = (&self.list.make_canvas)(width, height);
+        self.calculate_widths();
     }
 
     fn change_focus(&mut self, section: Section) {

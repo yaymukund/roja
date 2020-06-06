@@ -1,13 +1,26 @@
 use std::rc::Rc;
 
 use crate::library::{Playlist, Track};
-use crate::listener::{List, ListBuilder, ListRenderer, ListRow};
+use crate::listener::{ColumnWidth, List, ListBuilder, ListRenderer, ListRow};
 use crate::ui::{layout, Event, IntoListener, Listener, Section};
 use crate::util::channel;
 
+pub enum TrackColumn {
+    TrackNumber,
+    Title,
+    Date,
+    Duration,
+}
+
 impl ListRow for Rc<Track> {
-    fn row_text(&self) -> &str {
-        self.title()
+    type Column = TrackColumn;
+    fn column_text(&self, column: &Self::Column) -> &str {
+        match column {
+            TrackColumn::TrackNumber => self.track_number(),
+            TrackColumn::Title => self.title(),
+            TrackColumn::Date => self.date(),
+            TrackColumn::Duration => self.duration(),
+        }
     }
 }
 
@@ -52,6 +65,10 @@ impl IntoListener for Playlist {
         let list = ListBuilder::new()
             .section(Section::Playlist)
             .make_canvas(layout::playlist_canvas)
+            .column(TrackColumn::TrackNumber, "#", ColumnWidth::Absolute(4))
+            .column(TrackColumn::Title, "Title", ColumnWidth::Auto)
+            .column(TrackColumn::Date, "Year", ColumnWidth::Absolute(4))
+            .column(TrackColumn::Duration, "Length", ColumnWidth::Absolute(4))
             .on_select(move |index: usize, tracks: &[Rc<Track>]| {
                 let tracks = tracks[index..].to_vec();
                 sender.send(Event::QueueTracks(tracks))

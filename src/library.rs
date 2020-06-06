@@ -48,6 +48,18 @@ impl Track {
     pub fn path(&self) -> &PathBuf {
         &self.path
     }
+
+    pub fn track_number(&self) -> &str {
+        &self.track_number
+    }
+
+    pub fn date(&self) -> &str {
+        &self.date
+    }
+
+    pub fn duration(&self) -> &str {
+        &self.duration
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -98,12 +110,17 @@ impl TrackIndex {
     }
 
     pub fn tracks_for_folder_id(&self, folder_id: usize) -> Vec<Rc<Track>> {
-        self.folder_track_ids
+        let mut tracks: Vec<Rc<Track>> = self
+            .folder_track_ids
             .get(&folder_id)
             .expect("error: no tracks for folder_id")
             .iter()
             .map(|track_id| self.get_track(*track_id))
-            .collect()
+            .collect();
+
+        tracks
+            .sort_by(|t1, t2| alphanumeric_sort::compare_str(t1.track_number(), t2.track_number()));
+        tracks
     }
 }
 

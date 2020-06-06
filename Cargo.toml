@@ -5,6 +5,7 @@ authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+alphanumeric-sort = "1.0.13"
 crossterm = "0.17"
 env_logger = "0.7"
 fst = "0.4"
