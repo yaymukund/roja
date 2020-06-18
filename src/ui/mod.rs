@@ -47,7 +47,7 @@ impl UI {
         }
     }
 
-    pub fn first_draw(&mut self) {
+    pub fn redraw(&mut self) {
         let (width, height) = terminal::size();
         self.send(&Event::Resize(width, height));
     }

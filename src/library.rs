@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::Settings;
+use crate::SETTINGS;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Folder {
@@ -69,8 +69,11 @@ struct Database {
 }
 
 pub fn read_json() -> (Vec<Folder>, TrackIndex) {
-    let path = Settings::global().metadata_path();
-    let file = File::open(path).expect("Could not open metadata file");
+    let file = SETTINGS.with(|s| {
+        let path = s.metadata_path();
+        File::open(path).expect("Could not open metadata file")
+    });
+
     let reader = BufReader::new(file);
     let database: Database =
         serde_json::from_reader(reader).expect("Could not read library JSON file");

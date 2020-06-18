@@ -1,52 +1,49 @@
-mod cli;
+mod cli_options;
 mod colors;
 mod config;
 mod deserialize_color;
 
-use once_cell::sync::OnceCell;
+use std::path::PathBuf;
 
-use cli::Cli;
+use xdg::BaseDirectories;
+
+pub use cli_options::{CliOptions, Command};
 pub use colors::Colors;
 use config::Config;
 pub use deserialize_color::SColor;
-use std::path::PathBuf;
 
-static SETTINGS: OnceCell<Settings> = OnceCell::new();
+static BASEDIRECTORY_PREFIX: &str = "roja";
+static FILENAME_CONFIG: &str = "config.json";
+static FILENAME_DB: &str = "store.db";
+
+thread_local! {
+    pub static SETTINGS: Settings = Settings::new();
+}
 
 #[derive(Debug)]
 pub struct Settings {
-    cli: Cli,
     config: Config,
-    xdg: xdg::BaseDirectories,
+    xdg: BaseDirectories,
 }
 
 impl Settings {
-    const CONFIG_PATH: &'static str = "config.json";
-
-    pub fn global() -> &'static Self {
-        SETTINGS.get().expect("settings used before initialization")
-    }
-
-    pub fn init() {
-        let settings = Self::new();
-        SETTINGS.set(settings).unwrap();
-    }
-
-    fn new() -> Self {
-        let xdg =
-            xdg::BaseDirectories::with_prefix("roja").expect("Could not initialize directories");
-
-        let cli = Cli::from_args();
-
-        let config_path = cli
-            .config_path
-            .unwrap_or_else(|| xdg.place_config_file(Self::CONFIG_PATH).unwrap());
+    pub fn new() -> Self {
+        let xdg = BaseDirectories::with_prefix(BASEDIRECTORY_PREFIX)
+            .expect("could not initialize xdg dir");
+        let config_path = xdg
+            .place_config_file(FILENAME_CONFIG)
+            .expect("could not place config file");
 
         Settings {
-            cli: Cli::from_args(),
-            config: Config::from_path(config_path),
             xdg,
+            config: Config::from_path(config_path),
         }
+    }
+
+    pub fn place_db_file(&self) -> PathBuf {
+        self.xdg
+            .place_data_file(FILENAME_DB)
+            .expect("could not place database file")
     }
 
     pub fn metadata_path(&self) -> &PathBuf {

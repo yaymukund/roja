@@ -7,7 +7,7 @@ pub struct FolderColumn;
 
 impl ListRow for Folder {
     type Column = FolderColumn;
-    fn column_text(&self, column: &Self::Column) -> &str {
+    fn column_text(&self, _column: &Self::Column) -> &str {
         self.path_str()
     }
 }

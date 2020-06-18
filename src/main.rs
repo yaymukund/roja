@@ -1,22 +1,33 @@
 #![warn(rust_2018_idioms)]
 #[macro_use]
 mod util;
-
 mod library;
 mod listener;
 mod player;
 mod settings;
+mod store;
 mod ui;
+
+use gumdrop::Options;
 
 use std::{thread, time};
 
-pub use settings::Settings;
+pub use settings::{CliOptions, Command, SETTINGS};
+pub use store::CONNECTION;
 use ui::UI;
 
 fn main() {
     env_logger::init();
-    Settings::init();
 
+    let cli_options = CliOptions::parse_args_default_or_exit();
+    if let Some(Command::InitDb(_)) = cli_options.command {
+        // init db
+    } else {
+        start_player();
+    }
+}
+
+fn start_player() {
     let mut ui = UI::new();
     let terminal = listener::Terminal;
     let (folders, tracks_index) = library::read_json();
@@ -30,7 +41,7 @@ fn main() {
     ui.register(folders);
     ui.register(player);
     ui.register(playlist);
-    ui.first_draw();
+    ui.redraw();
 
     while let Ok(()) = ui.tick() {
         thread::sleep(time::Duration::from_millis(10));

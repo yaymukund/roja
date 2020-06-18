@@ -3,7 +3,7 @@ use std::fmt::Display;
 use crossterm::style::{style, Color, Styler};
 
 use crate::util::{terminal, Point};
-use crate::Settings;
+use crate::SETTINGS;
 
 pub enum Label {
     PlayerControls,
@@ -20,14 +20,18 @@ use Label::*;
 
 impl Label {
     fn bg_color(&self) -> Option<Color> {
-        let colors = Settings::global().colors();
-        match self {
-            PlayerControls | PlayerProgress | PlayerProgressEmpty => Some(*colors.controls_bg()),
-            PlayerInfoBar => Some(*colors.info_bar_bg()),
-            ListFocusedHighlightedRow => Some(*colors.highlight_bg_focused()),
-            ListUnfocusedHighlightedRow => Some(*colors.highlight_bg_unfocused()),
-            _ => None,
-        }
+        SETTINGS.with(|s| {
+            let colors = s.colors();
+            match self {
+                PlayerControls | PlayerProgress | PlayerProgressEmpty => {
+                    Some(*colors.controls_bg())
+                }
+                PlayerInfoBar => Some(*colors.info_bar_bg()),
+                ListFocusedHighlightedRow => Some(*colors.highlight_bg_focused()),
+                ListUnfocusedHighlightedRow => Some(*colors.highlight_bg_unfocused()),
+                _ => None,
+            }
+        })
     }
 
     fn is_bold(&self) -> bool {
@@ -38,16 +42,20 @@ impl Label {
     }
 
     fn color(&self) -> Option<Color> {
-        let colors = Settings::global().colors();
-        match self {
-            PlayerControls => Some(*colors.controls()),
-            PlayerInfoBar => Some(*colors.info_bar()),
-            PlayerProgress => Some(*colors.progress_bar_fill()),
-            PlayerProgressEmpty => Some(*colors.progress_bar_empty()),
-            ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => Some(*colors.highlight()),
-            WindowDivider => Some(*colors.divider()),
-            _ => None,
-        }
+        SETTINGS.with(|s| {
+            let colors = s.colors();
+            match self {
+                PlayerControls => Some(*colors.controls()),
+                PlayerInfoBar => Some(*colors.info_bar()),
+                PlayerProgress => Some(*colors.progress_bar_fill()),
+                PlayerProgressEmpty => Some(*colors.progress_bar_empty()),
+                ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => {
+                    Some(*colors.highlight())
+                }
+                WindowDivider => Some(*colors.divider()),
+                _ => None,
+            }
+        })
     }
 
     fn is_styled(&self) -> bool {

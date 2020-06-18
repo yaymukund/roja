@@ -7,7 +7,7 @@ use log::debug;
 use mpv::events::simple::Event as MpvEvent;
 use mpv::Mpv;
 
-use crate::Settings;
+use crate::SETTINGS;
 use player_property::PlayerProperty;
 
 pub const PROPERTIES: [PlayerProperty; 4] = [
@@ -146,7 +146,7 @@ impl Player {
 }
 
 fn full_path(path: &PathBuf) -> String {
-    let path = Settings::global().music_library_path().join(path);
+    let path = SETTINGS.with(|s| s.music_library_path().join(path));
     format!(
         "\"{}\"",
         path.to_str().expect("could not convert path to str")
