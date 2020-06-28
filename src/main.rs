@@ -5,7 +5,7 @@ mod library;
 mod listener;
 mod player;
 mod settings;
-mod store;
+pub mod store;
 mod ui;
 
 use gumdrop::Options;
@@ -13,15 +13,15 @@ use gumdrop::Options;
 use std::{thread, time};
 
 pub use settings::{CliOptions, Command, SETTINGS};
-pub use store::CONNECTION;
 use ui::UI;
 
 fn main() {
     env_logger::init();
 
     let cli_options = CliOptions::parse_args_default_or_exit();
-    if let Some(Command::InitDb(_)) = cli_options.command {
+    if let Some(Command::InitDb(opts)) = cli_options.command {
         // init db
+        store::initialize_db(&opts.load_path, opts.create);
     } else {
         start_player();
     }

@@ -30,6 +30,7 @@ impl Settings {
     pub fn new() -> Self {
         let xdg = BaseDirectories::with_prefix(BASEDIRECTORY_PREFIX)
             .expect("could not initialize xdg dir");
+
         let config_path = xdg
             .place_config_file(FILENAME_CONFIG)
             .expect("could not place config file");

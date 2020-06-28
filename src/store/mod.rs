@@ -1,8 +1,11 @@
 mod initialize_database;
+mod metadata;
+pub mod query;
 
 use rusqlite::{Connection, OpenFlags};
 
 pub use initialize_database::*;
+pub use metadata::{FolderMetadata, TrackMetadata};
 
 use crate::SETTINGS;
 
