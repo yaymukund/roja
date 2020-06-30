@@ -13,6 +13,7 @@ filetime = "0.2"
 fst = "0.4"
 gumdrop = "0.8"
 id3 = "0.5"
+libmpv = "1.0"
 log = "0.4"
 mp3-duration = "0.1"
 once_cell = "1.4"
@@ -23,7 +24,3 @@ unicode-segmentation = "1.6.0"
 unicode-width = "0.1.7"
 walkdir = "2.3"
 xdg = "^2.1"
-
-[dependencies.libmpv]
-version = "1.0"
-# features = ["build_libmpv"]
