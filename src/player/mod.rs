@@ -3,30 +3,35 @@ mod player_property;
 use std::fmt::Display;
 use std::path::PathBuf;
 
+use anyhow::anyhow;
+use libmpv::{events::EventContext, Mpv};
 use log::debug;
-use mpv::events::simple::Event as MpvEvent;
-use mpv::Mpv;
+use once_cell::sync::OnceCell;
 
 use crate::SETTINGS;
-use player_property::PlayerProperty;
+pub use player_property::PlayerProperty;
 
-pub const PROPERTIES: [PlayerProperty; 4] = [
-    PlayerProperty::Elapsed,
-    PlayerProperty::Duration,
-    PlayerProperty::Pause,
-    PlayerProperty::MediaTitle,
-];
+static MPV: OnceCell<Mpv> = OnceCell::new();
 
-pub struct Player {
-    mpv: Mpv,
+pub struct Player<'a> {
+    mpv: &'a Mpv,
 }
 
-impl Player {
-    pub fn new() -> Self {
-        let mpv = Mpv::new().expect("could not initialize mpv instance");
+pub fn initialize_mpv() {
+    let mpv = Mpv::new().expect("could not initialize mpv");
 
-        // Does what it says on the tin. Copied from the example.
-        mpv.disable_deprecated_events().unwrap();
+    MPV.set(mpv)
+        .map_err(|_| anyhow!("could not statically set mpv"))
+        .unwrap();
+}
+
+pub fn create_event_context<'a>() -> EventContext<'a> {
+    MPV.get().unwrap().create_event_context()
+}
+
+impl<'a> Player<'a> {
+    pub fn new() -> Self {
+        let mpv = MPV.get().unwrap();
 
         // Playback will start when the cache has been filled up with this many
         // kilobytes of data (default: 0).
@@ -39,12 +44,6 @@ impl Player {
 
         // Disable video output
         mpv.set_property("vo", "null").unwrap();
-
-        // tells the mpv api that we want property change events.
-        for property in PROPERTIES.iter() {
-            mpv.observe_property(property.as_str(), property.player_format(), 0)
-                .unwrap();
-        }
 
         Player { mpv }
     }
@@ -125,14 +124,6 @@ impl Player {
     pub fn is_track_loaded(&self) -> bool {
         let idle: bool = self.mpv.get_property("idle-active").unwrap();
         !idle
-    }
-
-    pub fn wait_event(&self) -> Option<MpvEvent<'_>> {
-        if let Some(Ok(event)) = unsafe { self.mpv.wait_event(0.0) } {
-            Some(event)
-        } else {
-            None
-        }
     }
 
     fn command<T>(&self, name: T, args: &[&str])

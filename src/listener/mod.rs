@@ -2,6 +2,7 @@ mod focus;
 mod folders_view;
 mod list;
 mod player;
+mod player_events;
 mod playlist_view;
 mod terminal;
 mod track_index;

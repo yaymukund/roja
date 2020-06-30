@@ -1,5 +1,5 @@
 use core::str::FromStr;
-use mpv::Format;
+use libmpv::Format;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum PlayerProperty {

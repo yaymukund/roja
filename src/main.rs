@@ -17,6 +17,7 @@ use ui::UI;
 
 fn main() {
     env_logger::init();
+    player::initialize_mpv();
 
     let cli_options = CliOptions::parse_args_default_or_exit();
     if let Some(Command::InitDb(opts)) = cli_options.command {
@@ -33,12 +34,14 @@ fn start_player() {
     let (folders, tracks_index) = library::read_json();
     let playlist = library::Playlist::new();
     let player = player::Player::new();
+    let event_context = player::create_event_context();
 
     ui.register(listener::Window);
     ui.register(listener::Focus);
     ui.register(tracks_index);
     ui.register(terminal);
     ui.register(folders);
+    ui.register(event_context);
     ui.register(player);
     ui.register(playlist);
     ui.redraw();

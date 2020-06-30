@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
-use mpv::events::simple::{Event as MpvEvent, PropertyData};
+use libmpv::events::{Event as MpvEvent, PropertyData};
 
 use super::Section;
 use crate::library::Track;

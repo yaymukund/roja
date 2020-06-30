@@ -37,21 +37,19 @@ const INDICATOR_PAUSED: char = '|';
 const INDICATOR_IDLE: char = ' ';
 const INDICATOR_PLAYING: char = '▶';
 
-impl IntoListener for Player {
+impl IntoListener for Player<'static> {
     type LType = PlayerComponent;
-    fn into_listener(self, sender: channel::Sender<Event>) -> Self::LType {
+    fn into_listener(self, _sender: channel::Sender<Event>) -> Self::LType {
         Self::LType {
             player: self,
             canvas: Canvas::Uninitialized,
-            sender,
         }
     }
 }
 
 pub struct PlayerComponent {
-    player: Player,
+    player: Player<'static>,
     canvas: Canvas,
-    sender: channel::Sender<Event>,
 }
 
 impl PlayerComponent {
@@ -145,12 +143,6 @@ impl PlayerComponent {
         self.draw_progress();
     }
 
-    fn wait_event(&self) {
-        if let Some(event) = self.player.wait_event() {
-            self.sender.send(event.into());
-        }
-    }
-
     fn resize(&mut self, width: u16, height: u16) {
         self.canvas = layout::player_canvas(width, height);
     }
@@ -186,7 +178,6 @@ impl Listener for PlayerComponent {
         match event {
             Event::QueueTracks(tracks) => self.queue_tracks(tracks),
             Event::Resize(width, height) => self.resize(*width, *height),
-            Event::Tick => self.wait_event(),
             Event::SeekForward => self.seek_forward(),
             Event::SeekBackward => self.seek_backward(),
             Event::TogglePause => self.toggle_pause(),
