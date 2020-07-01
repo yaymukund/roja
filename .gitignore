@@ -1,4 +1,2 @@
 /target
-**/*.rs.bk
-server/node_modules
-server/music
+roja-build-database/music
