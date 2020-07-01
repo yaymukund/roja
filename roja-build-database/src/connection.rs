@@ -96,6 +96,16 @@ impl Connection {
                     ON DELETE RESTRICT
                     ON UPDATE CASCADE
         );
+
+        CREATE INDEX idx_tracks_folder_id
+        ON tracks (folder_id);
+
+        CREATE UNIQUE INDEX idx_folders_path
+        ON tracks (path);
+
+        CREATE INDEX idx_folders_created_at
+        ON folders (created_at);
+
         COMMIT;
         ",
         )?)
