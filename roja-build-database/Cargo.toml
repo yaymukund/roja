@@ -1,0 +1,17 @@
+[package]
+name = "roja-build-database"
+version = "0.1.0"
+authors = ["Mukund Lakshman <yaymukund@gmail.com>"]
+description = "build a roja music database from a path"
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+env_logger = "0.7"
+filetime = "0.2"
+gumdrop = "0.8"
+id3 = "0.5"
+log = "0.4"
+mp3-duration = "0.1"
+rusqlite = "0.23"
+walkdir = "2.3"

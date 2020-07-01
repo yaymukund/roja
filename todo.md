@@ -2,32 +2,32 @@
 
 - [ ] **Fetch metadata and index files**
   - [x] Configure paths
-  - [ ] ~~SSH library integration~~ Just pass ssh:// url to mpv
+  - [x] ~~SSH library integration~~ Just pass ssh:// url to mpv
   - [ ] Loading bar
 
 - [ ] **Playlist**
-  - [ ] Build data models for songs
+  - [x] Build data models for songs
   - [ ] PlaylistView
   - [ ] User interactions
 
 - [ ] **Folder list**
-  - [ ] Build data model for folders
+  - [x] Build data model for folders
   - [ ] FoldersView
-  - [ ] User interactions
+  - [x] User interactions
 
-- [ ] **Player**
-  - [ ] Play/pause indicator
-  - [ ] Current track title, as pulled from metadata
-  - [ ] Progress bar
-  - [ ] Idle state
+- [x] **Player**
+  - [x] Play/pause indicator
+  - [x] Current track title, as pulled from metadata
+  - [x] Progress bar
+  - [x] Idle state
 
 - [ ] **Search**
-  - [ ] Decide on a blazing fast search library
+  - [x] Decide on a fast search library
   - [ ] Debounce/throttle user input
   - [ ] Wire up to the playlist
   - [ ] SearchView
 
 - [ ] **Theming**
-  - [ ] User configurable theme
+  - [x] User configurable theme
   - [ ] \*Bonus\* Visualizations
   - [ ] \*Bonus\* Album art

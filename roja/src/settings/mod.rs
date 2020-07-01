@@ -1,4 +1,3 @@
-mod cli_options;
 mod colors;
 mod config;
 mod deserialize_color;
@@ -7,7 +6,6 @@ use std::path::PathBuf;
 
 use xdg::BaseDirectories;
 
-pub use cli_options::{CliOptions, Command};
 pub use colors::Colors;
 use config::Config;
 pub use deserialize_color::SColor;
