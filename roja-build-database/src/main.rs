@@ -1,6 +1,7 @@
 #![warn(rust_2018_idioms)]
 mod connection;
 mod metadata;
+mod progress;
 
 use anyhow::{anyhow, Result};
 use gumdrop::Options;
@@ -13,6 +14,7 @@ use std::path::{Path, PathBuf};
 
 use connection::Connection;
 use metadata::{FolderMetadata, TrackMetadata};
+use progress::Progress;
 
 /// build the roja music database
 #[derive(Options)]
@@ -51,16 +53,22 @@ where
         conn.create_tables()?;
     }
 
-    for dir_entry in child_dir_entries(&root) {
-        if let Err(err) = process_entry(&conn, &dir_entry, &root) {
-            warn!("error processing entry {}", err);
+    let dir_entries = child_dir_entries(&root).collect::<Vec<DirEntry>>();
+    let mut progress = Progress::new(dir_entries.len());
+
+    for dir_entry in dir_entries {
+        match process_entry(&conn, &dir_entry, &root) {
+            Err(err) => warn!("error processing entry {}", err),
+            Ok(true) => progress.increment_added(),
+            Ok(false) => progress.increment_skipped(),
         }
     }
 
+    println!();
     Ok(())
 }
 
-fn process_entry<P>(conn: &Connection, dir_entry: &DirEntry, root: P) -> Result<()>
+fn process_entry<P>(conn: &Connection, dir_entry: &DirEntry, root: P) -> Result<bool>
 where
     P: AsRef<Path>,
 {
@@ -69,7 +77,7 @@ where
 
     if conn.folder_exists(relative_path)? {
         info!("skipping path {}", relative_path);
-        return Ok(());
+        return Ok(false);
     }
 
     if is_mp3(dir_entry) {
@@ -77,6 +85,7 @@ where
         let folder_id = insert_folder(conn, &folder)?;
         let metadata = TrackMetadata::load(path, relative_path)?;
         insert_track(conn, &metadata, folder_id)?;
+        Ok(true)
     } else {
         let tracks: Vec<TrackMetadata> = mp3_dir_entries(path)
             .filter_map(|d| {
@@ -93,10 +102,11 @@ where
             for track in tracks {
                 insert_track(conn, &track, folder_id)?;
             }
+            Ok(true)
+        } else {
+            Ok(false)
         }
     }
-
-    Ok(())
 }
 
 fn insert_folder(conn: &Connection, metadata: &FolderMetadata) -> Result<i64> {
