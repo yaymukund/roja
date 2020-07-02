@@ -49,100 +49,112 @@ where
 {
     let conn = Connection::open(outfile)?;
 
-    if create {
-        conn.create_tables()?;
+    BuildDatabase {
+        conn,
+        root: root.as_ref().to_path_buf(),
+        create,
     }
-
-    let dir_entries = child_dir_entries(&root).collect::<Vec<DirEntry>>();
-    let mut progress = Progress::new(dir_entries.len());
-
-    for dir_entry in dir_entries {
-        match process_entry(&conn, &dir_entry, &root) {
-            Err(err) => warn!("error processing entry {}", err),
-            Ok(true) => progress.increment_added(),
-            Ok(false) => progress.increment_skipped(),
-        }
-    }
-
-    println!();
-    Ok(())
+    .execute()
 }
 
-fn process_entry<P>(conn: &Connection, dir_entry: &DirEntry, root: P) -> Result<bool>
-where
-    P: AsRef<Path>,
-{
-    let path = dir_entry.path();
-    let relative_path = strip_prefix(path, &root)?;
+struct BuildDatabase {
+    conn: Connection,
+    root: PathBuf,
+    create: bool,
+}
 
-    if conn.folder_exists(relative_path)? {
-        info!("skipping path {}", relative_path);
-        return Ok(false);
+impl BuildDatabase {
+    fn execute(&self) -> Result<()> {
+        if self.create {
+            self.conn.create_tables()?;
+        }
+
+        let dir_entries = self.directories();
+        let mut progress = Progress::new(dir_entries.len());
+
+        for dir_entry in dir_entries {
+            match self.process_dir_entry(&dir_entry) {
+                Err(err) => warn!("error processing entry {}", err),
+                Ok(true) => progress.increment_added(),
+                Ok(false) => progress.increment_skipped(),
+            }
+        }
+
+        println!();
+        Ok(())
     }
 
-    if is_mp3(dir_entry) {
-        let folder = FolderMetadata::load(path, relative_path)?;
-        let folder_id = insert_folder(conn, &folder)?;
-        let metadata = TrackMetadata::load(path, relative_path)?;
-        insert_track(conn, &metadata, folder_id)?;
-        Ok(true)
-    } else {
-        let tracks: Vec<TrackMetadata> = mp3_dir_entries(path)
-            .filter_map(|d| {
-                let path = d.path();
-                let relative_path = strip_prefix(path, &root).ok()?;
-                TrackMetadata::load(path, relative_path).ok()
-            })
-            .collect();
+    fn process_dir_entry(&self, dir_entry: &DirEntry) -> Result<bool> {
+        let path = dir_entry.path();
+        let relative_path = strip_prefix(path, &self.root)?;
 
-        if !tracks.is_empty() {
-            let folder = FolderMetadata::load(&path, relative_path)?;
-            let folder_id = insert_folder(conn, &folder)?;
+        if self.conn.folder_exists(relative_path)? {
+            info!("skipping path {}", relative_path);
+            return Ok(false);
+        }
 
-            for track in tracks {
-                insert_track(conn, &track, folder_id)?;
-            }
+        if is_mp3(dir_entry) {
+            let folder = FolderMetadata::load(path, relative_path)?;
+            let folder_id = self.insert_folder(&folder)?;
+            let metadata = TrackMetadata::load(path, relative_path)?;
+            self.insert_track(&metadata, folder_id)?;
             Ok(true)
         } else {
-            Ok(false)
+            let tracks: Vec<TrackMetadata> = mp3s_in_path(path)
+                .filter_map(|d| {
+                    let path = d.path();
+                    let relative_path = strip_prefix(path, &self.root).ok()?;
+                    TrackMetadata::load(path, relative_path).ok()
+                })
+                .collect();
+
+            if !tracks.is_empty() {
+                let folder = FolderMetadata::load(&path, relative_path)?;
+                let folder_id = self.insert_folder(&folder)?;
+
+                for track in tracks {
+                    self.insert_track(&track, folder_id)?;
+                }
+                Ok(true)
+            } else {
+                Ok(false)
+            }
         }
     }
-}
 
-fn insert_folder(conn: &Connection, metadata: &FolderMetadata) -> Result<i64> {
-    conn.insert_folder(named_params! {
-        ":path": metadata.relative_path(),
-        ":created_at": metadata.created_at(),
-    })
-}
+    /// find all directories nested immediately under `path` (one level deep)
+    fn directories(&self) -> Vec<DirEntry> {
+        WalkDir::new(&self.root)
+            .min_depth(1)
+            .max_depth(1)
+            .into_iter()
+            .filter_map(Result::ok)
+            .collect()
+    }
 
-fn insert_track(conn: &Connection, metadata: &TrackMetadata, folder_id: i64) -> Result<i64> {
-    conn.insert_track(named_params! {
-        ":title": metadata.title(),
-        ":album": metadata.album(),
-        ":artist": metadata.artist(),
-        ":date": metadata.date(),
-        ":track_number": metadata.track_number(),
-        ":duration_seconds": metadata.duration_seconds(),
-        ":path": metadata.relative_path(),
-        ":folder_id": folder_id,
-    })
-}
+    fn insert_folder(&self, metadata: &FolderMetadata) -> Result<i64> {
+        self.conn.insert_folder(named_params! {
+            ":path": metadata.relative_path(),
+            ":created_at": metadata.created_at(),
+        })
+    }
 
-/// find all directories nested immediately under `path` (one level deep)
-fn child_dir_entries<P>(path: P) -> impl Iterator<Item = DirEntry>
-where
-    P: AsRef<Path>,
-{
-    WalkDir::new(path)
-        .min_depth(1)
-        .max_depth(1)
-        .into_iter()
-        .filter_map(Result::ok)
+    fn insert_track(&self, metadata: &TrackMetadata, folder_id: i64) -> Result<i64> {
+        self.conn.insert_track(named_params! {
+            ":title": metadata.title(),
+            ":album": metadata.album(),
+            ":artist": metadata.artist(),
+            ":date": metadata.date(),
+            ":track_number": metadata.track_number(),
+            ":duration_seconds": metadata.duration_seconds(),
+            ":path": metadata.relative_path(),
+            ":folder_id": folder_id,
+        })
+    }
 }
 
 /// find all mp3s nested under `path` (at any depth)
-fn mp3_dir_entries<P>(path: P) -> impl Iterator<Item = DirEntry>
+fn mp3s_in_path<P>(path: P) -> impl Iterator<Item = DirEntry>
 where
     P: AsRef<Path>,
 {
