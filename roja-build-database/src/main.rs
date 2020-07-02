@@ -27,7 +27,7 @@ struct CliOpts {
     #[options(required, short = "o")]
     pub out_file: PathBuf,
 
-    /// if db doesn't exist, create it
+    /// create tables
     #[options(short = "c")]
     pub create: bool,
 
