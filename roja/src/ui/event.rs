@@ -90,6 +90,8 @@ fn from_key_event(code: KeyCode, modifiers: KeyModifiers) -> Event {
         KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
         KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
         KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
+        KeyCode::PageUp => Event::PageUp,
+        KeyCode::PageDown => Event::PageDown,
         KeyCode::Tab => Event::TabFocus,
         KeyCode::Enter => Event::Enter,
         KeyCode::Char('c') => Event::TogglePause,
