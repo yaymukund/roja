@@ -1,20 +1,16 @@
-use std::rc::Rc;
-
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
 use libmpv::events::{Event as MpvEvent, PropertyData};
 
 use super::Section;
-use crate::library::Track;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub enum Event {
     Tick,
     Resize(u16, u16),
     Draw,
-    SelectFolder(usize),
-    SetPlaylistTracks(Vec<Rc<Track>>),
+    LoadPlaylistFolder(usize),
     Focus(Section),
-    QueueTracks(Vec<Rc<Track>>),
+    QueueTracks(Vec<usize>),
 
     // Keyboard Input
     Quit,
@@ -33,6 +29,7 @@ pub enum Event {
     ChangeCurrentTime(i64),
     ChangeIndicator,
     ChangeTitle,
+    ChangeIdle,
 
     // other
     UnknownMpvEvent,
@@ -58,6 +55,10 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 name: "media-title",
                 ..
             } => Event::ChangeTitle,
+
+            MpvEvent::PropertyChange {
+                name: "core-idle", ..
+            } => Event::ChangeIdle,
 
             MpvEvent::PropertyChange { name: "pause", .. } => Event::ChangeIndicator,
 

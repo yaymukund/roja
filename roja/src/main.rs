@@ -5,35 +5,33 @@ mod library;
 mod listener;
 mod player;
 mod settings;
+pub mod store;
 mod ui;
 
 use std::{thread, time};
 
+use anyhow::Result;
 pub use settings::SETTINGS;
 use ui::UI;
 
-fn main() {
+fn main() -> Result<()> {
     env_logger::init();
     player::initialize_mpv();
 
     let mut ui = UI::new();
-    let terminal = listener::Terminal;
-    let (folders, tracks_index) = library::read_json();
-    let playlist = library::Playlist::new();
-    let player = player::Player::new();
-    let event_context = player::create_event_context();
 
     ui.register(listener::Window);
     ui.register(listener::Focus);
-    ui.register(tracks_index);
-    ui.register(terminal);
-    ui.register(folders);
-    ui.register(event_context);
-    ui.register(player);
-    ui.register(playlist);
+    ui.register(listener::Terminal);
+    ui.register(listener::FoldersView);
+    ui.register(player::create_event_context());
+    ui.register(player::Player::new());
+    ui.register(library::Playlist::new());
     ui.redraw();
 
     while let Ok(()) = ui.tick() {
         thread::sleep(time::Duration::from_millis(10));
     }
+
+    Ok(())
 }

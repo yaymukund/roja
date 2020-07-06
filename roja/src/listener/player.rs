@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
-use crate::library::Track;
 use crate::player::Player;
+use crate::store::get_paths_by_ids;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
 use crate::util::{channel, format_duration, Canvas, Point};
 
@@ -147,10 +145,11 @@ impl PlayerComponent {
         self.canvas = layout::player_canvas(width, height);
     }
 
-    fn queue_tracks(&self, tracks: &[Rc<Track>]) {
-        self.player.play(tracks[0].path());
-        for track in tracks[1..].iter() {
-            self.player.append(track.path());
+    fn queue_tracks(&self, track_ids: &Vec<usize>) {
+        let paths = get_paths_by_ids(&track_ids).expect("could not get paths for tracks");
+        self.player.play(&paths[0]);
+        for path in paths[1..].iter() {
+            self.player.append(&path);
         }
     }
 
@@ -176,7 +175,7 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
-            Event::QueueTracks(tracks) => self.queue_tracks(tracks),
+            Event::QueueTracks(track_ids) => self.queue_tracks(track_ids),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::SeekForward => self.seek_forward(),
             Event::SeekBackward => self.seek_backward(),
@@ -194,7 +193,9 @@ impl Listener for PlayerComponent {
                 self.draw_current_time(self.player.elapsed())
             }
             Event::ChangeTitle => self.draw_info(),
-            Event::ChangeIndicator | Event::TogglePause => self.draw_indicator(),
+            Event::ChangeIdle | Event::ChangeIndicator | Event::TogglePause => {
+                self.draw_indicator()
+            }
             Event::ChangeCurrentTime(secs) => {
                 self.draw_current_time(*secs);
                 self.draw_progress();

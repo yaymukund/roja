@@ -10,8 +10,7 @@ pub struct TrackIndexListener {
 impl Listener for TrackIndexListener {
     fn on_event(&mut self, event: &Event) {
         if let Event::SelectFolder(folder_id) = event {
-            let tracks = self.index.tracks_for_folder_id(*folder_id);
-            self.sender.send(Event::SetPlaylistTracks(tracks));
+            self.sender.send(Event::LoadPlaylistFolder(folder_id));
         }
     }
 }

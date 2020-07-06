@@ -12,7 +12,7 @@ pub use deserialize_color::SColor;
 
 static BASEDIRECTORY_PREFIX: &str = "roja";
 static FILENAME_CONFIG: &str = "config.json";
-static FILENAME_DB: &str = "store.db";
+static FILENAME_DB: &str = "roja-store.db";
 
 thread_local! {
     pub static SETTINGS: Settings = Settings::new();
