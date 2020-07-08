@@ -10,5 +10,6 @@ mod window;
 pub use focus::Focus;
 pub use folders_view::FoldersView;
 pub use list::*;
+pub use playlist_view::PlaylistView;
 pub use terminal::Terminal;
 pub use window::Window;

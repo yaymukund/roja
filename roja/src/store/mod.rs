@@ -109,7 +109,7 @@ pub fn get_tracks() -> Result<Vec<Track>> {
     Ok(tracks)
 }
 
-pub fn get_paths_by_ids(ids: &Vec<usize>) -> Result<Vec<PathBuf>> {
+pub fn get_paths_by_ids(ids: &[usize]) -> Result<Vec<PathBuf>> {
     let conn = get_connection();
     let params = (0..ids.len()).map(|_| "?").collect::<Vec<&str>>().join(",");
     let order_params = (0..ids.len())

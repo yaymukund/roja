@@ -1,7 +1,7 @@
 use std::cmp;
 use std::ops::RangeInclusive;
 
-use crate::ui::{Event, Label, Section};
+use crate::ui::{Event, Label, Listener, Section};
 use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
@@ -9,9 +9,24 @@ pub trait ListRow {
     fn column_text(&self, column: &Self::Column) -> &str;
 }
 
-pub type BoxedCallback<R> = Box<dyn Callback<R>>;
-pub trait Callback<R>: Fn(usize, &[R]) {}
-impl<T, R> Callback<R> for T where T: Fn(usize, &[R]) {}
+pub type BoxedOnItem<R> = Box<dyn OnItem<R>>;
+pub trait OnItem<R>: Fn(usize, &[R]) {}
+impl<T, R> OnItem<R> for T where T: Fn(usize, &[R]) {}
+
+pub type BoxedOnEvent<R> = Box<dyn OnEvent<R>>;
+pub trait OnEvent<R>: Fn(&Event, &mut List<R>) {}
+impl<T, R> OnEvent<R> for T where T: Fn(&Event, &mut List<R>) {}
+
+pub struct ListBuilder<R: ListRow> {
+    columns: Vec<ListColumn<R>>,
+    make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
+    section: Option<Section>,
+    focused: bool,
+    on_highlight: Option<BoxedOnItem<R>>,
+    on_select: Option<BoxedOnItem<R>>,
+    on_event: Option<BoxedOnEvent<R>>,
+    items: Vec<R>,
+}
 
 pub struct List<R: ListRow> {
     canvas: Canvas,
@@ -21,8 +36,10 @@ pub struct List<R: ListRow> {
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     focused: bool,
     section: Section,
-    on_highlight: Option<BoxedCallback<R>>,
-    on_select: Option<BoxedCallback<R>>,
+    on_highlight: Option<BoxedOnItem<R>>,
+    on_select: Option<BoxedOnItem<R>>,
+    on_event: Option<BoxedOnEvent<R>>,
+    items: Vec<R>,
 }
 
 struct ListColumn<R: ListRow> {
@@ -38,22 +55,8 @@ pub enum ColumnWidth {
     Auto,
 }
 
-pub struct ListBuilder<R: ListRow> {
-    columns: Vec<ListColumn<R>>,
-    make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
-    section: Option<Section>,
-    focused: bool,
-    on_highlight: Option<BoxedCallback<R>>,
-    on_select: Option<BoxedCallback<R>>,
-}
-
-pub struct ListRenderer<'a, R: ListRow> {
-    list: &'a mut List<R>,
-    items: &'a [R],
-}
-
 impl<R: ListRow> ListBuilder<R> {
-    pub fn new() -> Self {
+    pub fn new(items: Vec<R>) -> Self {
         Self {
             columns: Vec::new(),
             make_canvas: None,
@@ -61,6 +64,8 @@ impl<R: ListRow> ListBuilder<R> {
             focused: false,
             on_highlight: None,
             on_select: None,
+            on_event: None,
+            items,
         }
     }
 
@@ -84,7 +89,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_highlight<F: 'static>(mut self, on_highlight: F) -> Self
     where
-        F: Callback<R>,
+        F: OnItem<R>,
     {
         self.on_highlight = Some(Box::new(on_highlight));
         self
@@ -92,9 +97,17 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_select<F: 'static>(mut self, on_select: F) -> Self
     where
-        F: Callback<R>,
+        F: OnItem<R>,
     {
         self.on_select = Some(Box::new(on_select));
+        self
+    }
+
+    pub fn on_event<F: 'static>(mut self, on_event: F) -> Self
+    where
+        F: OnEvent<R>,
+    {
+        self.on_event = Some(Box::new(on_event));
         self
     }
 
@@ -121,15 +134,35 @@ impl<R: ListRow> ListBuilder<R> {
                 make_canvas: self.make_canvas.unwrap(),
                 on_highlight: self.on_highlight,
                 on_select: self.on_select,
+                on_event: self.on_event,
                 section: self.section.unwrap(),
                 selected_index: 0,
                 start_index: 0,
+                items: self.items,
             }
         }
     }
 }
 
 impl<R: ListRow> List<R> {
+    pub fn set_items(&mut self, items: Vec<R>) {
+        self.start_index = 0;
+        self.selected_index = 0;
+        self.items.clear();
+        self.items.extend(items);
+        self.draw();
+    }
+
+    pub fn draw(&self) {
+        if !self.should_draw() {
+            return;
+        }
+
+        for index in self.visible_indices() {
+            self.draw_row(index - self.start_index);
+        }
+    }
+
     fn focus(&mut self) {
         self.focused = true;
     }
@@ -142,59 +175,13 @@ impl<R: ListRow> List<R> {
         self.focused
     }
 
-    pub fn reset(&mut self) {
-        self.start_index = 0;
-        self.selected_index = 0;
-    }
-
-    pub fn with_items<'a, F>(&'a mut self, items: &'a [R], func: F)
-    where
-        R: ListRow,
-        F: Fn(&mut ListRenderer<'a, R>),
-    {
-        let mut renderer = ListRenderer { list: self, items };
-        func(&mut renderer)
-    }
-}
-
-impl<'a, R: ListRow> ListRenderer<'a, R> {
-    pub fn process_event(&mut self, event: &Event) {
-        match event {
-            Event::Draw => self.draw(),
-            Event::Resize(width, height) => self.resize_canvas(*width, *height),
-            Event::Focus(section) => self.change_focus(*section),
-            Event::Enter => self.try_select_item(),
-            _ => {}
-        }
-
-        if !self.list.is_focused() {
-            return;
-        }
-
-        let old_selected_index = self.list.selected_index;
-
-        match event {
-            Event::MoveDown => self.scroll_down(),
-            Event::MoveUp => self.scroll_up(),
-            Event::PageDown => self.scroll_page_down(),
-            Event::PageUp => self.scroll_page_up(),
-            _ => {}
-        }
-
-        if let Some(on_highlight) = &self.list.on_highlight {
-            if old_selected_index != self.list.selected_index {
-                on_highlight(self.list.selected_index as usize, &self.items);
-            }
-        }
-    }
-
     fn try_select_item(&self) {
-        if !self.list.is_focused() {
+        if !self.is_focused() {
             return;
         }
 
-        if let Some(on_select) = &self.list.on_select {
-            on_select(self.list.selected_index as usize, &self.items);
+        if let Some(on_select) = &self.on_select {
+            on_select(self.selected_index as usize, &self.items);
         }
     }
 
@@ -207,19 +194,19 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
     }
 
     fn end_index(&self) -> u16 {
-        self.list.start_index + self.list.canvas.height() - 1
+        self.start_index + self.canvas.height() - 1
     }
 
     fn selected_position(&self) -> u16 {
-        self.list.selected_index - self.list.start_index
+        self.selected_index - self.start_index
     }
 
     fn visible_indices(&self) -> RangeInclusive<u16> {
-        self.list.start_index..=self.end_index()
+        self.start_index..=self.end_index()
     }
 
     fn highlighted_label(&self) -> Label {
-        if self.list.is_focused() {
+        if self.is_focused() {
             Label::ListFocusedHighlightedRow
         } else {
             Label::ListUnfocusedHighlightedRow
@@ -227,9 +214,9 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
     }
 
     fn draw_row(&self, position: u16) {
-        let index = self.list.start_index + position;
-        let width = self.list.canvas.width();
-        let point = self.list.canvas.point().down(position);
+        let index = self.start_index + position;
+        let width = self.canvas.width();
+        let point = self.canvas.point().down(position);
 
         let mut row_text = String::with_capacity(width as usize);
 
@@ -243,7 +230,7 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
             row_text.push(' '); //
             let item = self.get_item(index);
 
-            for column in &self.list.columns {
+            for column in &self.columns {
                 let text = item.column_text(&column.coltype);
                 let text = fit_width(text, column.calculated_width as usize, true);
                 row_text.push_str(&text);
@@ -251,7 +238,7 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
             }
         }
 
-        let label = if index == self.list.selected_index {
+        let label = if index == self.selected_index {
             self.highlighted_label()
         } else {
             Label::ListRow
@@ -262,19 +249,18 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
 
     fn calculate_widths(&mut self) {
         let canvas_width = self
-            .list
             .canvas
             .width()
             // subtract margins
             .saturating_sub(2)
             // subtract space in between columns
-            .saturating_sub(self.list.columns.len() as u16 - 1);
+            .saturating_sub(self.columns.len() as u16 - 1);
 
         let mut rem_width = canvas_width;
         let mut auto_count = 0;
 
         // calculate widths for columns that requested a width
-        for column in &mut self.list.columns {
+        for column in &mut self.columns {
             match &column.width {
                 ColumnWidth::Auto => auto_count += 1,
                 width => {
@@ -292,42 +278,32 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
             }
         }
 
-        for column in &mut self.list.columns {
+        for column in &mut self.columns {
             if let ColumnWidth::Auto = column.width {
                 column.calculated_width = (rem_width as f32 / auto_count as f32).floor() as u16;
             }
         }
     }
 
-    pub fn draw(&self) {
-        if !self.should_draw() {
-            return;
-        }
-
-        for index in self.visible_indices() {
-            self.draw_row(index - self.list.start_index);
-        }
-    }
-
     fn scroll_down(&mut self) {
-        if self.list.selected_index == self.items_len().saturating_sub(1) {
+        if self.selected_index == self.items_len().saturating_sub(1) {
             return;
         }
 
-        self.select(self.list.selected_index + 1);
+        self.select(self.selected_index + 1);
     }
 
     fn scroll_up(&mut self) {
-        if self.list.selected_index == 0 {
+        if self.selected_index == 0 {
             return;
         }
 
-        self.select(self.list.selected_index - 1);
+        self.select(self.selected_index - 1);
     }
 
     fn scroll_page_down(&mut self) {
         let page_size = self.page_size();
-        let mut new_index = self.list.selected_index + page_size;
+        let mut new_index = self.selected_index + page_size;
 
         if new_index > self.items_len().saturating_sub(1) {
             new_index = self.items_len().saturating_sub(1);
@@ -337,43 +313,42 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
     }
 
     fn scroll_page_up(&mut self) {
-        let new_index = self.list.selected_index.saturating_sub(self.page_size());
+        let new_index = self.selected_index.saturating_sub(self.page_size());
         self.select(new_index);
     }
 
     fn page_size(&self) -> u16 {
-        self.list.canvas.height() / 2
+        self.canvas.height() / 2
     }
 
     fn should_draw(&self) -> bool {
-        self.list.canvas.is_initialized() && self.list.canvas.width() > 4
+        self.canvas.is_initialized() && self.canvas.width() > 4
     }
 
     fn select(&mut self, new_index: u16) {
-        if self.list.selected_index == new_index {
+        if self.selected_index == new_index {
             return;
         }
 
         if self.visible_indices().contains(&new_index) {
             let position = self.selected_position();
-            self.list.selected_index = new_index;
+            self.selected_index = new_index;
             self.draw_row(position);
             self.draw_row(self.selected_position());
         } else {
-            if new_index > self.list.selected_index {
-                self.list.start_index += new_index - self.list.selected_index;
-                self.list.selected_index = new_index;
+            if new_index > self.selected_index {
+                self.start_index += new_index - self.selected_index;
+                self.selected_index = new_index;
             } else {
-                self.list.start_index = self
-                    .list
+                self.start_index = self
                     .start_index
-                    .saturating_sub(self.list.selected_index - new_index);
-                self.list.selected_index = new_index;
+                    .saturating_sub(self.selected_index - new_index);
+                self.selected_index = new_index;
             }
 
-            let max_start_index = self.items_len().saturating_sub(self.list.canvas.height());
-            if self.list.start_index > max_start_index {
-                self.list.start_index = max_start_index;
+            let max_start_index = self.items_len().saturating_sub(self.canvas.height());
+            if self.start_index > max_start_index {
+                self.start_index = max_start_index;
             }
 
             self.draw();
@@ -381,17 +356,56 @@ impl<'a, R: ListRow> ListRenderer<'a, R> {
     }
 
     fn resize_canvas(&mut self, width: u16, height: u16) {
-        self.list.canvas = (&self.list.make_canvas)(width, height);
+        self.canvas = (&self.make_canvas)(width, height);
         self.calculate_widths();
     }
 
     fn change_focus(&mut self, section: Section) {
-        if self.list.section == section {
-            self.list.focus();
+        if self.section == section {
+            self.focus();
         } else {
-            self.list.unfocus();
+            self.unfocus();
         }
 
         self.draw_row(self.selected_position());
+    }
+}
+
+impl<R: ListRow> Listener for List<R> {
+    fn on_event(&mut self, event: &Event) {
+        let on_event = self.on_event.take();
+
+        if let Some(on_event) = on_event {
+            on_event(event, self);
+            self.on_event.replace(on_event);
+        }
+
+        match event {
+            Event::Draw => self.draw(),
+            Event::Resize(width, height) => self.resize_canvas(*width, *height),
+            Event::Focus(section) => self.change_focus(*section),
+            Event::Enter => self.try_select_item(),
+            _ => {}
+        }
+
+        if !self.is_focused() {
+            return;
+        }
+
+        let old_selected_index = self.selected_index;
+
+        match event {
+            Event::MoveDown => self.scroll_down(),
+            Event::MoveUp => self.scroll_up(),
+            Event::PageDown => self.scroll_page_down(),
+            Event::PageUp => self.scroll_page_up(),
+            _ => {}
+        }
+
+        if let Some(on_highlight) = &self.on_highlight {
+            if old_selected_index != self.selected_index {
+                on_highlight(self.selected_index as usize, &self.items);
+            }
+        }
     }
 }

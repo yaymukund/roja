@@ -145,8 +145,8 @@ impl PlayerComponent {
         self.canvas = layout::player_canvas(width, height);
     }
 
-    fn queue_tracks(&self, track_ids: &Vec<usize>) {
-        let paths = get_paths_by_ids(&track_ids).expect("could not get paths for tracks");
+    fn queue_tracks(&self, track_ids: &[usize]) {
+        let paths = get_paths_by_ids(track_ids).expect("could not get paths for tracks");
         self.player.play(&paths[0]);
         for path in paths[1..].iter() {
             self.player.append(&path);

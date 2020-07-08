@@ -1,7 +1,6 @@
 #![warn(rust_2018_idioms)]
 #[macro_use]
 mod util;
-mod library;
 mod listener;
 mod player;
 mod settings;
@@ -26,7 +25,7 @@ fn main() -> Result<()> {
     ui.register(listener::FoldersView);
     ui.register(player::create_event_context());
     ui.register(player::Player::new());
-    ui.register(library::Playlist::new());
+    ui.register(listener::PlaylistView);
     ui.redraw();
 
     while let Ok(()) = ui.tick() {
