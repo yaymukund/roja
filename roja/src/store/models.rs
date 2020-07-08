@@ -21,7 +21,7 @@ pub struct Track {
     pub artist: String,
     pub date: String,
     pub track_number: String,
-    pub duration: String,
+    pub duration: usize,
     pub path: PathBuf,
     pub folder_id: usize,
 }

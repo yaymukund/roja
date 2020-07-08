@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cmp;
 use std::ops::RangeInclusive;
 
@@ -6,7 +7,7 @@ use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
     type Column;
-    fn column_text(&self, column: &Self::Column) -> &str;
+    fn column_text(&self, column: &Self::Column) -> Cow<'_, str>;
 }
 
 pub type BoxedOnItem<R> = Box<dyn OnItem<R>>;
@@ -232,7 +233,7 @@ impl<R: ListRow> List<R> {
 
             for column in &self.columns {
                 let text = item.column_text(&column.coltype);
-                let text = fit_width(text, column.calculated_width as usize, true);
+                let text = fit_width(&text, column.calculated_width as usize, true);
                 row_text.push_str(&text);
                 row_text.push(' ');
             }
@@ -374,7 +375,6 @@ impl<R: ListRow> List<R> {
 impl<R: ListRow> Listener for List<R> {
     fn on_event(&mut self, event: &Event) {
         let on_event = self.on_event.take();
-
         if let Some(on_event) = on_event {
             on_event(event, self);
             self.on_event.replace(on_event);

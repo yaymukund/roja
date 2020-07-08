@@ -156,7 +156,7 @@ fn row_to_track(row: &Row<'_>) -> rusqlite::Result<Track> {
         artist: row.get(3)?,
         date: row.get(4)?,
         track_number: row.get(5)?,
-        duration: duration.to_string(),
+        duration: duration as usize,
         path: PathBuf::from(path),
         folder_id: folder_id as usize,
     })

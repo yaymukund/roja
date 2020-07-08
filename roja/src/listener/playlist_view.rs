@@ -1,7 +1,9 @@
+use std::borrow::Cow;
+
 use crate::listener::{ColumnWidth, List, ListBuilder, ListRow};
 use crate::store::{get_tracks_by_folder_id, Track};
 use crate::ui::{layout, Event, IntoListener, Section};
-use crate::util::channel;
+use crate::util::{channel, format_duration};
 
 pub enum TrackColumn {
     TrackNumber,
@@ -12,12 +14,12 @@ pub enum TrackColumn {
 
 impl ListRow for Track {
     type Column = TrackColumn;
-    fn column_text(&self, column: &Self::Column) -> &str {
+    fn column_text(&self, column: &Self::Column) -> Cow<'_, str> {
         match column {
-            TrackColumn::TrackNumber => &self.track_number,
-            TrackColumn::Title => &self.title,
-            TrackColumn::Date => &self.date,
-            TrackColumn::Duration => &self.duration,
+            TrackColumn::TrackNumber => Cow::Borrowed(&self.track_number),
+            TrackColumn::Title => Cow::Borrowed(&self.title),
+            TrackColumn::Date => Cow::Borrowed(&self.date),
+            TrackColumn::Duration => Cow::Owned(format_duration(self.duration as i64)),
         }
     }
 }
@@ -34,7 +36,7 @@ impl IntoListener for PlaylistView {
             .column(TrackColumn::TrackNumber, "#", ColumnWidth::Absolute(4))
             .column(TrackColumn::Title, "Title", ColumnWidth::Auto)
             .column(TrackColumn::Date, "Year", ColumnWidth::Absolute(4))
-            .column(TrackColumn::Duration, "Length", ColumnWidth::Absolute(4))
+            .column(TrackColumn::Duration, "Length", ColumnWidth::Absolute(5))
             .on_select(move |index: usize, tracks: &[Track]| {
                 let tracks = tracks[index..].iter().map(|t| t.id).collect();
                 sender.send(Event::QueueTracks(tracks))
