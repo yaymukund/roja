@@ -159,6 +159,8 @@ impl<R: ListRow> List<R> {
             return;
         }
 
+        self.draw_titles();
+
         for index in self.visible_indices() {
             self.draw_row(index - self.start_index);
         }
@@ -195,7 +197,7 @@ impl<R: ListRow> List<R> {
     }
 
     fn end_index(&self) -> u16 {
-        self.start_index + self.canvas.height() - 1
+        self.start_index + self.canvas.height() - 2
     }
 
     fn selected_position(&self) -> u16 {
@@ -214,10 +216,25 @@ impl<R: ListRow> List<R> {
         }
     }
 
+    fn draw_titles(&self) {
+        let width = self.canvas.width();
+        let mut row_text = String::with_capacity(width as usize);
+
+        // left margin
+        row_text.push(' ');
+        for column in &self.columns {
+            let text = fit_width(&column.title, column.calculated_width as usize, true);
+            row_text.push_str(&text);
+            row_text.push(' ');
+        }
+
+        self.canvas.point().draw(row_text, Label::ListTitle);
+    }
+
     fn draw_row(&self, position: u16) {
         let index = self.start_index + position;
         let width = self.canvas.width();
-        let point = self.canvas.point().down(position);
+        let point = self.canvas.point().down(position + 1);
 
         let mut row_text = String::with_capacity(width as usize);
 

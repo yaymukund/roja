@@ -7,8 +7,6 @@ use std::path::{Path, PathBuf};
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub music_library_path: PathBuf,
-    pub metadata_path: PathBuf,
-    pub metadata_index_path: PathBuf,
     pub colors: Colors,
 }
 

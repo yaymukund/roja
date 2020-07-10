@@ -13,6 +13,7 @@ pub enum Label {
     ListFocusedHighlightedRow,
     ListUnfocusedHighlightedRow,
     ListRow,
+    ListTitle,
     WindowDivider,
 }
 
@@ -36,7 +37,7 @@ impl Label {
 
     fn is_bold(&self) -> bool {
         match *self {
-            ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => true,
+            ListFocusedHighlightedRow | ListTitle | ListUnfocusedHighlightedRow => true,
             _ => false,
         }
     }

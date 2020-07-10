@@ -45,10 +45,6 @@ impl Settings {
             .expect("could not place database file")
     }
 
-    pub fn metadata_path(&self) -> &PathBuf {
-        &self.config.metadata_path
-    }
-
     pub fn music_library_path(&self) -> &PathBuf {
         &self.config.music_library_path
     }
