@@ -4,6 +4,7 @@ mod deserialize_color;
 
 use std::path::PathBuf;
 
+use anyhow::Result;
 use xdg::BaseDirectories;
 
 pub use colors::Colors;
@@ -11,11 +12,11 @@ use config::Config;
 pub use deserialize_color::SColor;
 
 static BASEDIRECTORY_PREFIX: &str = "roja";
-static FILENAME_CONFIG: &str = "config.json";
+static FILENAME_CONFIG: &str = "config.toml";
 static FILENAME_DB: &str = "roja-store.db";
 
 thread_local! {
-    pub static SETTINGS: Settings = Settings::new();
+    pub static SETTINGS: Settings = Settings::build().unwrap();
 }
 
 #[derive(Debug)]
@@ -25,18 +26,14 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn new() -> Self {
-        let xdg = BaseDirectories::with_prefix(BASEDIRECTORY_PREFIX)
-            .expect("could not initialize xdg dir");
+    pub fn build() -> Result<Self> {
+        let xdg = BaseDirectories::with_prefix(BASEDIRECTORY_PREFIX)?;
+        let config_path = xdg.place_config_file(FILENAME_CONFIG)?;
 
-        let config_path = xdg
-            .place_config_file(FILENAME_CONFIG)
-            .expect("could not place config file");
-
-        Settings {
+        Ok(Settings {
             xdg,
-            config: Config::from_path(config_path),
-        }
+            config: Config::from_path(config_path)?,
+        })
     }
 
     pub fn place_db_file(&self) -> PathBuf {

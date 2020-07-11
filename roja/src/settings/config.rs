@@ -1,8 +1,11 @@
-use super::Colors;
+use anyhow::{anyhow, Result};
 use serde::Deserialize;
+
 use std::fs::File;
-use std::io::BufReader;
+use std::io::Read;
 use std::path::{Path, PathBuf};
+
+use super::Colors;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -11,12 +14,10 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Self {
-        let file = File::open(&path).unwrap_or_else(move |_| {
-            panic!(format!("Could not open {}", path.as_ref().display()));
-        });
-        let reader = BufReader::new(file);
-        // We want it to panic if the json is invalid.
-        serde_json::from_reader(reader).unwrap()
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let mut file = File::open(&path)?;
+        let mut config_str = String::new();
+        file.read_to_string(&mut config_str)?;
+        toml::from_str(&config_str).map_err(|_| anyhow!("could not parse toml from config.toml"))
     }
 }
