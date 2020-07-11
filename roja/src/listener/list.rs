@@ -197,7 +197,7 @@ impl<R: ListRow> List<R> {
     }
 
     fn end_index(&self) -> u16 {
-        self.start_index + self.canvas.height() - 2
+        self.start_index + self.visible_rows_count() - 1
     }
 
     fn selected_position(&self) -> u16 {
@@ -364,13 +364,17 @@ impl<R: ListRow> List<R> {
                 self.selected_index = new_index;
             }
 
-            let max_start_index = self.items_len().saturating_sub(self.canvas.height());
+            let max_start_index = self.items_len().saturating_sub(self.visible_rows_count());
             if self.start_index > max_start_index {
                 self.start_index = max_start_index;
             }
 
             self.draw();
         }
+    }
+
+    fn visible_rows_count(&self) -> u16 {
+        self.canvas.height() - 1
     }
 
     fn resize_canvas(&mut self, width: u16, height: u16) {
