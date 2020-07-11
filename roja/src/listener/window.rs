@@ -18,7 +18,9 @@ impl WindowView {
     fn draw(&self) {
         let offset = self.folder_view_width();
 
-        for y in 0..self.player_y {
+        self.canvas.right(offset).draw(" ", Label::ListTitle);
+
+        for y in 1..self.player_y {
             self.canvas
                 .right(offset)
                 .down(y)

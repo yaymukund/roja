@@ -2,8 +2,8 @@ use crate::util::Canvas;
 
 const CENTER_MARGIN: u16 = 1;
 const BOTTOM_MARGIN: u16 = 1;
-const PLAYER_LEFT_MARGIN: u16 = 1;
-const PLAYER_RIGHT_MARGIN: u16 = 1;
+const PLAYER_LEFT_MARGIN: u16 = 0;
+const PLAYER_RIGHT_MARGIN: u16 = 0;
 const PLAYER_HEIGHT: u16 = 2;
 
 pub fn folders_view_width(width: u16) -> u16 {
@@ -67,8 +67,8 @@ mod test {
     #[test]
     fn test_player_canvas() {
         let canvas = player_canvas(10, 10);
-        assert_eq!(canvas.point(), &point!(1, 7));
-        assert_eq!(canvas.width(), 8);
+        assert_eq!(canvas.point(), &point!(0, 7));
+        assert_eq!(canvas.width(), 10);
         assert_eq!(canvas.height(), 2);
     }
 

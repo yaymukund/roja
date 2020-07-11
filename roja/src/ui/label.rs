@@ -27,9 +27,8 @@ impl Label {
                 PlayerControls | PlayerProgress | PlayerProgressEmpty => {
                     Some(*colors.controls_bg())
                 }
-                PlayerInfoBar => Some(*colors.info_bar_bg()),
-                ListFocusedHighlightedRow => Some(*colors.highlight_bg_focused()),
-                ListUnfocusedHighlightedRow => Some(*colors.highlight_bg_unfocused()),
+                PlayerInfoBar | ListTitle | ListFocusedHighlightedRow => Some(*colors.main()),
+                ListUnfocusedHighlightedRow => Some(*colors.unfocused()),
                 _ => None,
             }
         })
@@ -37,7 +36,10 @@ impl Label {
 
     fn is_bold(&self) -> bool {
         match *self {
-            ListFocusedHighlightedRow | ListTitle | ListUnfocusedHighlightedRow => true,
+            PlayerProgress
+            | ListFocusedHighlightedRow
+            | ListTitle
+            | ListUnfocusedHighlightedRow => true,
             _ => false,
         }
     }
@@ -46,14 +48,11 @@ impl Label {
         SETTINGS.with(|s| {
             let colors = s.colors();
             match self {
-                PlayerControls => Some(*colors.controls()),
-                PlayerInfoBar => Some(*colors.info_bar()),
-                PlayerProgress => Some(*colors.progress_bar_fill()),
-                PlayerProgressEmpty => Some(*colors.progress_bar_empty()),
-                ListFocusedHighlightedRow | ListUnfocusedHighlightedRow => {
-                    Some(*colors.highlight())
-                }
-                WindowDivider => Some(*colors.divider()),
+                WindowDivider => Some(*colors.main()),
+                ListFocusedHighlightedRow | ListTitle | PlayerInfoBar => Some(*colors.text_bold()),
+                PlayerProgress => Some(*colors.accent()),
+                PlayerProgressEmpty => Some(*colors.accent2()),
+                PlayerControls => Some(*colors.text_dark()),
                 _ => None,
             }
         })
