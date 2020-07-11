@@ -36,7 +36,7 @@ impl IntoListener for PlaylistView {
             .column(TrackColumn::TrackNumber, "#", ColumnWidth::Absolute(4))
             .column(TrackColumn::Title, "Title", ColumnWidth::Auto)
             .column(TrackColumn::Date, "Year", ColumnWidth::Absolute(4))
-            .column(TrackColumn::Duration, "Length", ColumnWidth::Absolute(5))
+            .column(TrackColumn::Duration, " ◴", ColumnWidth::Absolute(5))
             .on_select(move |index: usize, tracks: &[Track]| {
                 let tracks = tracks[index..].iter().map(|t| t.id).collect();
                 sender.send(Event::QueueTracks(tracks))
