@@ -289,18 +289,17 @@ checksum = "a9f8082297d534141b30c8d39e9b1773713ab50fdbe4ff30f750d063b3bfd701"
 
 [[package]]
 name = "libmpv"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9eed4b79d52caff4697bbb30b3243e330d0de0b0c558b57d9c7fe105d83cce2"
+version = "1.1.0"
+source = "git+https://github.com/ParadoxSpiral/libmpv-rs.git#c9cef6635c580339954b846bb375ff42a367fcdc"
 dependencies = [
  "libmpv-sys",
 ]
 
 [[package]]
 name = "libmpv-sys"
-version = "3.0.0"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f5880e96826295a9e75cdaed052c5c88c21d2495c4e761f8b5dca152688934d"
+checksum = "0df938d3145cd8f134572721a27afa3a51f9bc1c26ae30a1d5077162f96d074b"
 
 [[package]]
 name = "libsqlite3-sys"

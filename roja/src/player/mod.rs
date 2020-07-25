@@ -5,7 +5,6 @@ use std::path::PathBuf;
 
 use anyhow::anyhow;
 use libmpv::{events::EventContext, Mpv};
-use log::debug;
 use once_cell::sync::OnceCell;
 
 use crate::SETTINGS;
@@ -132,7 +131,7 @@ impl<'a> Player<'a> {
     {
         self.mpv
             .command(name.as_ref(), args)
-            .unwrap_or_else(|e| debug!("mpv {} error: {:?}", name, e));
+            .unwrap_or_else(|e| log::debug!("mpv {} error: {:?}", name, e));
     }
 }
 

@@ -4,8 +4,9 @@ use crate::util::channel;
 
 use libmpv::events::EventContext;
 
-pub const PROPERTIES: [PlayerProperty; 5] = [
+pub const PROPERTIES: [PlayerProperty; 6] = [
     PlayerProperty::Elapsed,
+    PlayerProperty::DemuxerCacheState,
     PlayerProperty::Duration,
     PlayerProperty::Pause,
     PlayerProperty::MediaTitle,
@@ -18,7 +19,7 @@ pub struct PlayerEventsListener<'a> {
 }
 
 impl<'a> PlayerEventsListener<'a> {
-    fn wait_event(&self) {
+    fn wait_event(&mut self) {
         if let Some(Ok(event)) = self.context.wait_event(0.0) {
             self.sender.send(event.into());
         }

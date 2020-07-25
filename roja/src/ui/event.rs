@@ -1,5 +1,7 @@
 use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
 use libmpv::events::{Event as MpvEvent, PropertyData};
+use libmpv::MpvNode;
+use std::collections::HashMap;
 
 use super::Section;
 
@@ -30,6 +32,7 @@ pub enum Event {
     ChangeIndicator,
     ChangeTitle,
     ChangeIdle,
+    ChangeSeekableRanges(Vec<(f64, f64)>),
 
     // other
     UnknownMpvEvent,
@@ -62,9 +65,33 @@ impl<'a> From<MpvEvent<'a>> for Event {
 
             MpvEvent::PropertyChange { name: "pause", .. } => Event::ChangeIndicator,
 
+            MpvEvent::PropertyChange {
+                name: "demuxer-cache-state",
+                change: PropertyData::Node(mpv_node),
+                ..
+            } => {
+                let data = seekable_ranges(mpv_node).expect("could not parse demuxer-cache-state");
+                Event::ChangeSeekableRanges(data)
+            }
+
             _ => Event::UnknownMpvEvent,
         }
     }
+}
+
+fn seekable_ranges(demuxer_cache_state: &MpvNode) -> Option<Vec<(f64, f64)>> {
+    let mut res = Vec::new();
+    let props: HashMap<&str, MpvNode> = demuxer_cache_state.to_map()?.collect();
+    let ranges = props.get("seekable-ranges")?.to_array()?;
+
+    for node in ranges {
+        let range: HashMap<&str, MpvNode> = node.to_map()?.collect();
+        let start = range.get("start")?.to_f64()?;
+        let end = range.get("end")?.to_f64()?;
+        res.push((start, end));
+    }
+
+    Some(res)
 }
 
 impl From<CrosstermEvent> for Event {
