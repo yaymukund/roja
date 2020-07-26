@@ -10,6 +10,7 @@ pub enum Label {
     PlayerInfoBar,
     PlayerProgress,
     PlayerProgressEmpty,
+    PlayerProgressBuffered,
     ListFocusedHighlightedRow,
     ListUnfocusedHighlightedRow,
     ListRow,
@@ -24,7 +25,7 @@ impl Label {
         SETTINGS.with(|s| {
             let colors = s.colors();
             match self {
-                PlayerControls | PlayerProgress | PlayerProgressEmpty => {
+                PlayerControls | PlayerProgress | PlayerProgressEmpty | PlayerProgressBuffered => {
                     Some(*colors.controls_bg())
                 }
                 PlayerInfoBar | ListTitle | ListFocusedHighlightedRow => Some(*colors.main()),
@@ -51,7 +52,7 @@ impl Label {
                 WindowDivider => Some(*colors.main()),
                 ListFocusedHighlightedRow | ListTitle | PlayerInfoBar => Some(*colors.text_bold()),
                 PlayerProgress => Some(*colors.accent()),
-                PlayerProgressEmpty => Some(*colors.accent2()),
+                PlayerProgressBuffered => Some(*colors.accent2()),
                 PlayerControls => Some(*colors.text_dark()),
                 _ => None,
             }

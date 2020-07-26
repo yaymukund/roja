@@ -4,6 +4,7 @@ use libmpv::MpvNode;
 use std::collections::HashMap;
 
 use super::Section;
+use crate::player::SeekableRanges;
 
 #[derive(Clone, Debug)]
 pub enum Event {
@@ -32,7 +33,7 @@ pub enum Event {
     ChangeIndicator,
     ChangeTitle,
     ChangeIdle,
-    ChangeSeekableRanges(Vec<(f64, f64)>),
+    ChangeSeekableRanges(SeekableRanges),
 
     // other
     UnknownMpvEvent,
@@ -79,7 +80,7 @@ impl<'a> From<MpvEvent<'a>> for Event {
     }
 }
 
-fn seekable_ranges(demuxer_cache_state: &MpvNode) -> Option<Vec<(f64, f64)>> {
+fn seekable_ranges(demuxer_cache_state: &MpvNode) -> Option<SeekableRanges> {
     let mut res = Vec::new();
     let props: HashMap<&str, MpvNode> = demuxer_cache_state.to_map()?.collect();
     let ranges = props.get("seekable-ranges")?.to_array()?;

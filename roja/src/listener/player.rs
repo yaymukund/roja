@@ -1,4 +1,4 @@
-use crate::player::Player;
+use crate::player::{Player, SeekableRanges};
 use crate::store::get_paths_by_ids;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
 use crate::util::{channel, format_duration, Canvas, Point};
@@ -31,9 +31,11 @@ const OFFSET_TOTAL_TIME: u16 = OFFSET_SLASH + 1;
 const OFFSET_TOTAL_TIME_RMARGIN: u16 = OFFSET_TOTAL_TIME + 6;
 const OFFSET_PROGRESS: u16 = OFFSET_TOTAL_TIME + 7;
 
-const INDICATOR_PAUSED: char = '|';
-const INDICATOR_IDLE: char = ' ';
-const INDICATOR_PLAYING: char = '▶';
+const INDICATOR_PAUSED: &'static str = "|";
+const INDICATOR_IDLE: &'static str = " ";
+const INDICATOR_PLAYING: &'static str = "▶";
+const PROGRESS_FILLED: &'static str = "━";
+const PROGRESS_UNPLAYED: &'static str = "─";
 
 impl IntoListener for Player<'static> {
     type LType = PlayerComponent;
@@ -41,6 +43,7 @@ impl IntoListener for Player<'static> {
         Self::LType {
             player: self,
             canvas: Canvas::Uninitialized,
+            seekable_ranges: Vec::new(),
         }
     }
 }
@@ -48,6 +51,7 @@ impl IntoListener for Player<'static> {
 pub struct PlayerComponent {
     player: Player<'static>,
     canvas: Canvas,
+    seekable_ranges: SeekableRanges,
 }
 
 impl PlayerComponent {
@@ -80,18 +84,50 @@ impl PlayerComponent {
     }
 
     fn draw_progress(&self) {
-        let percent_complete = self.player.percent_complete();
-        let cols = self.canvas.width() - OFFSET_PROGRESS - MARGIN_RIGHT;
-        let filled = (cols * percent_complete) / 100;
-        let empty = cols - filled;
-        let filled_bar = "━".repeat(filled as usize);
-        let empty_bar = "─".repeat(empty as usize);
+        let elapsed = self.player.elapsed() as f64;
+        let duration = self.player.duration() as f64;
+        let rem_cols = self.canvas.width() - OFFSET_PROGRESS - MARGIN_RIGHT;
 
-        self.controls()
-            .right(OFFSET_PROGRESS)
-            .draw(&filled_bar, Label::PlayerProgress)
-            .right(filled)
-            .draw(&empty_bar, Label::PlayerProgressEmpty);
+        let mut progress_bar = ProgressBar {
+            sec_cols: (rem_cols as f64) / duration,
+            rem_cols,
+            point: self.controls().right(OFFSET_PROGRESS),
+        };
+
+        // fill elapsed
+        progress_bar.fill(elapsed, PROGRESS_FILLED, Label::PlayerProgress);
+
+        let mut curr = elapsed;
+        for (mut start, mut end) in &self.seekable_ranges {
+            if end <= curr {
+                continue;
+            }
+
+            if start < curr {
+                start = curr;
+            }
+
+            if end > duration {
+                end = duration;
+            }
+
+            // fill unplayed segment from cursor to start
+            if start > curr {
+                progress_bar.fill(start - curr, PROGRESS_UNPLAYED, Label::PlayerProgressEmpty);
+            }
+
+            // fill buffered segment from start to end
+            progress_bar.fill(
+                end - start,
+                PROGRESS_UNPLAYED,
+                Label::PlayerProgressBuffered,
+            );
+
+            // move cursor
+            curr = end;
+        }
+
+        progress_bar.fill_remaining(PROGRESS_UNPLAYED, Label::PlayerProgressEmpty);
     }
 
     fn draw_info(&self) {
@@ -170,6 +206,11 @@ impl PlayerComponent {
             self.player.toggle_pause();
         }
     }
+
+    fn update_seekable_ranges(&mut self, new_ranges: SeekableRanges) {
+        self.seekable_ranges = new_ranges;
+        self.draw_progress();
+    }
 }
 
 impl Listener for PlayerComponent {
@@ -204,7 +245,42 @@ impl Listener for PlayerComponent {
                 self.draw_total_time(*secs);
                 self.draw_progress();
             }
+            Event::ChangeSeekableRanges(ranges) => self.update_seekable_ranges(ranges.clone()),
             _ => {}
         }
+    }
+}
+
+struct ProgressBar {
+    sec_cols: f64,
+    rem_cols: u16,
+    point: Point,
+}
+
+impl ProgressBar {
+    fn fill(&mut self, secs: f64, character: &str, label: Label) {
+        if self.rem_cols == 0 {
+            return;
+        }
+
+        let mut cols = (secs * self.sec_cols).ceil() as u16;
+
+        if cols > self.rem_cols {
+            cols = self.rem_cols;
+        }
+
+        self.rem_cols -= cols;
+
+        let fill = character.repeat(cols as usize);
+        self.point = self.point.draw(&fill, label).right(cols);
+    }
+
+    fn fill_remaining(self, character: &str, label: Label) {
+        if self.rem_cols == 0 {
+            return;
+        }
+
+        let fill = character.repeat(self.rem_cols as usize);
+        self.point.draw(&fill, label);
     }
 }

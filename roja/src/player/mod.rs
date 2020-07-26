@@ -12,6 +12,8 @@ pub use player_property::PlayerProperty;
 
 static MPV: OnceCell<Mpv> = OnceCell::new();
 
+pub type SeekableRanges = Vec<(f64, f64)>;
+
 pub struct Player<'a> {
     mpv: &'a Mpv,
 }
@@ -76,7 +78,7 @@ impl<'a> Player<'a> {
     pub fn percent_complete(&self) -> u16 {
         let elapsed = self.elapsed() as f64;
         let duration = self.duration() as f64;
-        let percent_complete = elapsed / duration * 100.0;
+        let percent_complete = (elapsed / duration) * 100.0;
 
         if percent_complete > 100.0 {
             100
