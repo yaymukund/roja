@@ -1,7 +1,7 @@
 use crate::player::{Player, SeekableRanges};
 use crate::store::get_paths_by_ids;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
-use crate::util::{channel, format_duration, Canvas, Point};
+use crate::util::{channel, fit_width, format_duration, Canvas, Point};
 
 //
 // Basically, we're trying to render the following:
@@ -131,13 +131,8 @@ impl PlayerComponent {
     }
 
     fn draw_info(&self) {
-        let width = self.canvas.width();
-        let now_playing = format!("{} - {}", self.player.artist(), self.player.title());
-        let info = format!(
-            " ♫ {:space$} ",
-            now_playing,
-            space = (width - MARGIN_LEFT - MARGIN_RIGHT - 2).into()
-        );
+        let info = format!(" ♫ {} - {}", self.player.artist(), self.player.title());
+        let info = fit_width(&info, self.canvas.width() as usize, false);
 
         self.canvas.draw(info, Label::PlayerInfoBar);
     }
