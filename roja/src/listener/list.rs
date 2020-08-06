@@ -147,10 +147,13 @@ impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
 
 impl<R: ListRow, L: Deref<Target = [R]>> List<R, L> {
     pub fn set_items(&mut self, items: L) {
-        self.start_index = 0;
-        self.selected_index = 0;
         self.items = items;
-        self.draw();
+        self.selected_index = 0;
+        self.start_index = 0;
+    }
+
+    pub fn set_selected_index(&mut self, index: usize) {
+        self.select(index as u16);
     }
 
     pub fn draw(&self) {

@@ -4,13 +4,14 @@ use crate::util::channel;
 
 use libmpv::events::EventContext;
 
-pub const PROPERTIES: [PlayerProperty; 6] = [
+pub const PROPERTIES: [PlayerProperty; 7] = [
     PlayerProperty::Elapsed,
     PlayerProperty::DemuxerCacheState,
     PlayerProperty::Duration,
     PlayerProperty::Pause,
     PlayerProperty::MediaTitle,
     PlayerProperty::CoreIdle,
+    PlayerProperty::PlaylistPos,
 ];
 
 pub struct PlayerEventsListener<'a> {

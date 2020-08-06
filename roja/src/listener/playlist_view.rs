@@ -51,6 +51,8 @@ impl IntoListener for PlaylistView {
         .on_event(|event: &Event, list: &mut List<Track, Playlist>| {
             if let Event::DisplayPlaylist(playlist) = event {
                 list.set_items(playlist.clone());
+                list.set_selected_index(playlist.selected_index);
+                list.draw();
             }
         })
         .build()

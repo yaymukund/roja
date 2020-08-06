@@ -47,6 +47,7 @@ pub enum Event {
     ChangeTitle,
     ChangeIdle,
     ChangeSeekableRanges(SeekableRanges),
+    ChangePlaylistPos(i64),
 
     // log & ignore
     UnknownMpvEvent,
@@ -87,6 +88,12 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 let data = seekable_ranges(mpv_node).expect("could not parse demuxer-cache-state");
                 Event::ChangeSeekableRanges(data)
             }
+
+            MpvEvent::PropertyChange {
+                name: "playlist-pos",
+                change: PropertyData::Int64(new_index),
+                ..
+            } => Event::ChangePlaylistPos(new_index),
 
             _ => Event::UnknownMpvEvent,
         }

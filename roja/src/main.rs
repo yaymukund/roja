@@ -26,6 +26,7 @@ fn main() -> Result<()> {
     ui.register(player::create_event_context());
     ui.register(player::Player::new());
     ui.register(listener::PlaylistView);
+    ui.register(listener::NowPlaying);
     ui.redraw();
 
     while let Ok(()) = ui.tick() {

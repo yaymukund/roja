@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::rc::Rc;
 
 use anyhow::Result;
-use log::info;
 use rusqlite::{named_params, Connection as RusqliteConnection, Row, NO_PARAMS};
 
 use crate::SETTINGS;
@@ -50,7 +49,7 @@ pub fn get_folders() -> Result<Vec<Folder>> {
     })?;
 
     let folders: Vec<Folder> = folders.filter_map(Result::ok).collect();
-    info!("Found {} folders in db", folders.len());
+    log::info!("Found {} folders in db", folders.len());
     Ok(folders)
 }
 
@@ -105,7 +104,7 @@ pub fn get_tracks() -> Result<Vec<Track>> {
         .filter_map(Result::ok)
         .collect();
 
-    info!("Found {} tracks in db", tracks.len());
+    log::info!("Found {} tracks in db", tracks.len());
     Ok(tracks)
 }
 
