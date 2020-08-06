@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::cmp;
-use std::ops::RangeInclusive;
+use std::ops::{Deref, RangeInclusive};
 
 use crate::ui::{Event, Label, Listener, Section};
 use crate::util::{fit_width, Canvas};
@@ -10,26 +10,26 @@ pub trait ListRow {
     fn column_text(&self, column: &Self::Column) -> Cow<'_, str>;
 }
 
-pub type BoxedOnItem<R> = Box<dyn OnItem<R>>;
-pub trait OnItem<R>: Fn(usize, &[R]) {}
-impl<T, R> OnItem<R> for T where T: Fn(usize, &[R]) {}
+pub type BoxedOnItem<L> = Box<dyn OnItem<L>>;
+pub trait OnItem<L>: Fn(usize, &mut L) {}
+impl<T, L> OnItem<L> for T where T: Fn(usize, &mut L) {}
 
-pub type BoxedOnEvent<R> = Box<dyn OnEvent<R>>;
-pub trait OnEvent<R>: Fn(&Event, &mut List<R>) {}
-impl<T, R> OnEvent<R> for T where T: Fn(&Event, &mut List<R>) {}
+pub type BoxedOnEvent<R, L> = Box<dyn OnEvent<R, L>>;
+pub trait OnEvent<R, L>: Fn(&Event, &mut List<R, L>) {}
+impl<T, R, L> OnEvent<R, L> for T where T: Fn(&Event, &mut List<R, L>) {}
 
-pub struct ListBuilder<R: ListRow> {
+pub struct ListBuilder<R: ListRow, L: Deref<Target = [R]>> {
     columns: Vec<ListColumn<R>>,
     make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
     section: Option<Section>,
     focused: bool,
-    on_highlight: Option<BoxedOnItem<R>>,
-    on_select: Option<BoxedOnItem<R>>,
-    on_event: Option<BoxedOnEvent<R>>,
-    items: Vec<R>,
+    on_highlight: Option<BoxedOnItem<L>>,
+    on_select: Option<BoxedOnItem<L>>,
+    on_event: Option<BoxedOnEvent<R, L>>,
+    items: L,
 }
 
-pub struct List<R: ListRow> {
+pub struct List<R: ListRow, L: Deref<Target = [R]>> {
     canvas: Canvas,
     columns: Vec<ListColumn<R>>,
     start_index: u16,
@@ -37,10 +37,10 @@ pub struct List<R: ListRow> {
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     focused: bool,
     section: Section,
-    on_highlight: Option<BoxedOnItem<R>>,
-    on_select: Option<BoxedOnItem<R>>,
-    on_event: Option<BoxedOnEvent<R>>,
-    items: Vec<R>,
+    on_highlight: Option<BoxedOnItem<L>>,
+    on_select: Option<BoxedOnItem<L>>,
+    on_event: Option<BoxedOnEvent<R, L>>,
+    items: L,
 }
 
 struct ListColumn<R: ListRow> {
@@ -56,8 +56,8 @@ pub enum ColumnWidth {
     Auto,
 }
 
-impl<R: ListRow> ListBuilder<R> {
-    pub fn new(items: Vec<R>) -> Self {
+impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
+    pub fn new(items: L) -> Self {
         Self {
             columns: Vec::new(),
             make_canvas: None,
@@ -90,7 +90,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_highlight<F: 'static>(mut self, on_highlight: F) -> Self
     where
-        F: OnItem<R>,
+        F: OnItem<L>,
     {
         self.on_highlight = Some(Box::new(on_highlight));
         self
@@ -98,7 +98,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_select<F: 'static>(mut self, on_select: F) -> Self
     where
-        F: OnItem<R>,
+        F: OnItem<L>,
     {
         self.on_select = Some(Box::new(on_select));
         self
@@ -106,7 +106,7 @@ impl<R: ListRow> ListBuilder<R> {
 
     pub fn on_event<F: 'static>(mut self, on_event: F) -> Self
     where
-        F: OnEvent<R>,
+        F: OnEvent<R, L>,
     {
         self.on_event = Some(Box::new(on_event));
         self
@@ -122,7 +122,7 @@ impl<R: ListRow> ListBuilder<R> {
         self
     }
 
-    pub fn build(self) -> List<R> {
+    pub fn build(self) -> List<R, L> {
         if self.make_canvas.is_none() {
             panic!("missing list builder argument: `make_canvas`");
         } else if self.section.is_none() {
@@ -145,12 +145,11 @@ impl<R: ListRow> ListBuilder<R> {
     }
 }
 
-impl<R: ListRow> List<R> {
-    pub fn set_items(&mut self, items: Vec<R>) {
+impl<R: ListRow, L: Deref<Target = [R]>> List<R, L> {
+    pub fn set_items(&mut self, items: L) {
         self.start_index = 0;
         self.selected_index = 0;
-        self.items.clear();
-        self.items.extend(items);
+        self.items = items;
         self.draw();
     }
 
@@ -178,13 +177,13 @@ impl<R: ListRow> List<R> {
         self.focused
     }
 
-    fn try_select_item(&self) {
+    fn try_select_item(&mut self) {
         if !self.is_focused() {
             return;
         }
 
         if let Some(on_select) = &self.on_select {
-            on_select(self.selected_index as usize, &self.items);
+            on_select(self.selected_index as usize, &mut self.items);
         }
     }
 
@@ -393,7 +392,7 @@ impl<R: ListRow> List<R> {
     }
 }
 
-impl<R: ListRow> Listener for List<R> {
+impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
     fn on_event(&mut self, event: &Event) {
         let on_event = self.on_event.take();
         if let Some(on_event) = on_event {
@@ -425,7 +424,7 @@ impl<R: ListRow> Listener for List<R> {
 
         if let Some(on_highlight) = &self.on_highlight {
             if old_selected_index != self.selected_index {
-                on_highlight(self.selected_index as usize, &self.items);
+                on_highlight(self.selected_index as usize, &mut self.items);
             }
         }
     }

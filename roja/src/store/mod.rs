@@ -8,7 +8,7 @@ use log::info;
 use rusqlite::{named_params, Connection as RusqliteConnection, Row, NO_PARAMS};
 
 use crate::SETTINGS;
-pub use models::{Folder, Track};
+pub use models::{Folder, Playlist, Track};
 
 thread_local! {
     static CONN: Rc<RusqliteConnection> = initialize_db();

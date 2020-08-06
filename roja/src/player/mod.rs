@@ -49,18 +49,22 @@ impl<'a> Player<'a> {
         Player { mpv }
     }
 
-    pub fn play(&self, path: &PathBuf) {
-        let path = full_path(path);
-        self.command("loadfile", &[&path]);
-
-        if self.paused() {
-            self.toggle_pause();
-        }
+    pub fn stop(&self) {
+        self.command("stop", &[]);
     }
 
-    pub fn append(&self, path: &PathBuf) {
+    pub fn playlist_append(&self, path: &PathBuf) {
         let path = full_path(path);
         self.command("loadfile", &[&path, "append"]);
+    }
+
+    pub fn playlist_play_index(&self, index: usize) {
+        self.mpv
+            .set_property("playlist-pos", format!("{}", index))
+            .expect("could not change playlist position");
+
+        // only supported in v 0.33
+        // self.command("playlist-play-index", &[&format!("{}", index)]);
     }
 
     pub fn elapsed(&self) -> i64 {

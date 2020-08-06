@@ -5,29 +5,42 @@ use std::collections::HashMap;
 
 use super::Section;
 use crate::player::SeekableRanges;
+use crate::store::Playlist;
 
 #[derive(Clone, Debug)]
 pub enum Event {
+    // every tick
     Tick,
+    // terminal size changed
     Resize(u16, u16),
+    // redraw
     Draw,
-    LoadPlaylistFolder(usize),
+    // show playlist
+    DisplayPlaylist(Playlist),
+    // queue songs in playlist, starting with selected song
+    QueuePlaylist(Playlist),
+    // switch focus between sections
     Focus(Section),
-    QueueTracks(Vec<usize>),
 
-    // Keyboard Input
+    // exit
     Quit,
+    // pause/unpause
+    TogglePause,
+    // ← 5s
     SeekBackward,
+    // → 5s
     SeekForward,
+    // move up/down in the current section
     MoveDown,
     MoveUp,
     PageDown,
     PageUp,
-    TogglePause,
+    // change section
     TabFocus,
+    // select whatever's highlighted
     Enter,
 
-    // MPV Events
+    // respond to mpv property changes
     ChangeTotalTime(i64),
     ChangeCurrentTime(i64),
     ChangeIndicator,
@@ -35,7 +48,7 @@ pub enum Event {
     ChangeIdle,
     ChangeSeekableRanges(SeekableRanges),
 
-    // other
+    // log & ignore
     UnknownMpvEvent,
     UnknownCrosstermEvent,
 }

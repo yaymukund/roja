@@ -1,5 +1,5 @@
 use crate::player::{Player, SeekableRanges};
-use crate::store::get_paths_by_ids;
+use crate::store::Playlist;
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
 use crate::util::{channel, fit_width, format_duration, Canvas, Point};
 
@@ -31,11 +31,11 @@ const OFFSET_TOTAL_TIME: u16 = OFFSET_SLASH + 1;
 const OFFSET_TOTAL_TIME_RMARGIN: u16 = OFFSET_TOTAL_TIME + 6;
 const OFFSET_PROGRESS: u16 = OFFSET_TOTAL_TIME + 7;
 
-const INDICATOR_PAUSED: &'static str = "|";
-const INDICATOR_IDLE: &'static str = " ";
-const INDICATOR_PLAYING: &'static str = "▶";
-const PROGRESS_FILLED: &'static str = "━";
-const PROGRESS_UNPLAYED: &'static str = "─";
+const INDICATOR_PAUSED: &str = "|";
+const INDICATOR_IDLE: &str = " ";
+const INDICATOR_PLAYING: &str = "▶";
+const PROGRESS_FILLED: &str = "━";
+const PROGRESS_UNPLAYED: &str = "─";
 
 impl IntoListener for Player<'static> {
     type LType = PlayerComponent;
@@ -176,12 +176,12 @@ impl PlayerComponent {
         self.canvas = layout::player_canvas(width, height);
     }
 
-    fn queue_tracks(&self, track_ids: &[usize]) {
-        let paths = get_paths_by_ids(track_ids).expect("could not get paths for tracks");
-        self.player.play(&paths[0]);
-        for path in paths[1..].iter() {
-            self.player.append(&path);
+    fn queue_tracks(&self, playlist: &Playlist) {
+        self.player.stop();
+        for track in playlist.tracks.iter() {
+            self.player.playlist_append(&track.path);
         }
+        self.player.playlist_play_index(playlist.selected_index);
     }
 
     fn seek_forward(&self) {
@@ -211,7 +211,7 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
-            Event::QueueTracks(track_ids) => self.queue_tracks(track_ids),
+            Event::QueuePlaylist(playlist) => self.queue_tracks(playlist),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::SeekForward => self.seek_forward(),
             Event::SeekBackward => self.seek_backward(),

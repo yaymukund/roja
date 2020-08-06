@@ -1,4 +1,6 @@
+use std::ops::Deref;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub struct Folder {
@@ -24,4 +26,17 @@ pub struct Track {
     pub duration: usize,
     pub path: PathBuf,
     pub folder_id: usize,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct Playlist {
+    pub tracks: Rc<Vec<Track>>,
+    pub selected_index: usize,
+}
+
+impl Deref for Playlist {
+    type Target = [Track];
+    fn deref(&self) -> &Self::Target {
+        &self.tracks
+    }
 }
