@@ -1,5 +1,5 @@
 use crate::store::Playlist;
-use crate::ui::{Event, IntoListener, Listener};
+use crate::ui::{Event, IntoListener, Listener, Section};
 use crate::util::channel;
 
 pub struct NowPlaying;
@@ -17,6 +17,7 @@ impl Listener for NowPlayingListener {
                 self.playlist.selected_index = *new_index as usize;
                 let event = Event::DisplayPlaylist(self.playlist.clone());
                 self.sender.send(event);
+                self.sender.send(Event::Focus(Section::Playlist));
             }
             _ => {}
         }
