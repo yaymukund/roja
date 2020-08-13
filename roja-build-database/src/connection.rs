@@ -1,5 +1,7 @@
 use anyhow::Result;
-use rusqlite::{named_params, Connection as RusqliteConnection, OptionalExtension, ToSql};
+use rusqlite::{
+    named_params, Connection as RusqliteConnection, OptionalExtension, ToSql, NO_PARAMS,
+};
 
 use std::path::Path;
 
@@ -14,6 +16,34 @@ impl Connection {
     {
         let conn = RusqliteConnection::open(db_path)?;
         Ok(Self { conn })
+    }
+
+    pub fn select_all_track_search_strings(&self) -> Result<Vec<(i64, String)>> {
+        let mut stmt = self.conn.prepare(
+            "SELECT
+                id,
+                title || '|' ||
+                album || '|' ||
+                artist || '|' ||
+                path AS search
+            FROM tracks
+            ORDER BY
+                title ASC,
+                album ASC,
+                artist ASC,
+                path ASC;",
+        )?;
+
+        let mut results: Vec<(i64, String)> = stmt
+            .query_map(NO_PARAMS, |row| {
+                let res: (i64, String) = (row.get(0)?, row.get(1)?);
+                Ok(res)
+            })?
+            .filter_map(Result::ok)
+            .collect();
+
+        results.sort_by(|a, b| a.1.cmp(&b.1));
+        Ok(results)
     }
 
     pub fn folder_exists(&self, folder_path: &str) -> Result<bool> {

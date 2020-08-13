@@ -514,6 +514,7 @@ dependencies = [
  "anyhow",
  "env_logger",
  "filetime",
+ "fst",
  "gumdrop",
  "id3",
  "log",
