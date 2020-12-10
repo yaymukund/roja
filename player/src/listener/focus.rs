@@ -9,7 +9,7 @@ pub struct FocusListener {
 }
 
 impl FocusListener {
-    fn tab_focus(&mut self) {
+    fn focus_next_tab(&mut self) {
         let next = if self.focused_section == Section::FoldersList {
             Section::Playlist
         } else {
@@ -18,6 +18,10 @@ impl FocusListener {
 
         self.sender.send(Event::Focus(next));
         self.focused_section = next;
+    }
+
+    fn focus_search(&mut self) {
+        self.sender.send(Event::Focus(Section::Search));
     }
 }
 
@@ -34,8 +38,10 @@ impl IntoListener for Focus {
 
 impl Listener for FocusListener {
     fn on_event(&mut self, event: &Event) {
-        if let Event::TabFocus = event {
-            self.tab_focus();
+        if event.is_char_press('/') {
+            self.focus_search();
+        } else if event.is_tab() {
+            self.focus_next_tab();
         }
     }
 }

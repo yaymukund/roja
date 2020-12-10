@@ -13,7 +13,7 @@ use anyhow::Result;
 pub use settings::SETTINGS;
 use ui::UI;
 
-fn main() -> Result<()> {
+fn main() {
     env_logger::init();
     player::initialize_mpv();
 
@@ -27,11 +27,11 @@ fn main() -> Result<()> {
     ui.register(player::Player::new());
     ui.register(listener::PlaylistView);
     ui.register(listener::NowPlaying);
+    ui.register(listener::Search);
+    ui.register(listener::Console);
     ui.redraw();
 
     while let Ok(()) = ui.tick() {
         thread::sleep(time::Duration::from_millis(10));
     }
-
-    Ok(())
 }

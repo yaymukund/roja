@@ -1,9 +1,7 @@
 use crate::util::Canvas;
 
 const CENTER_MARGIN: u16 = 1;
-const BOTTOM_MARGIN: u16 = 1;
-const PLAYER_LEFT_MARGIN: u16 = 0;
-const PLAYER_RIGHT_MARGIN: u16 = 0;
+const CONSOLE_HEIGHT: u16 = 1;
 const PLAYER_HEIGHT: u16 = 2;
 
 pub fn folders_view_width(width: u16) -> u16 {
@@ -11,11 +9,11 @@ pub fn folders_view_width(width: u16) -> u16 {
 }
 
 fn main_height(height: u16) -> u16 {
-    height - BOTTOM_MARGIN - PLAYER_HEIGHT
+    height - CONSOLE_HEIGHT - PLAYER_HEIGHT
 }
 
 pub fn player_y(height: u16) -> u16 {
-    height - BOTTOM_MARGIN - 2
+    height - CONSOLE_HEIGHT - PLAYER_HEIGHT
 }
 
 pub fn window_canvas(width: u16, height: u16) -> Canvas {
@@ -24,11 +22,7 @@ pub fn window_canvas(width: u16, height: u16) -> Canvas {
 
 pub fn player_canvas(width: u16, height: u16) -> Canvas {
     let y = player_y(height);
-    Canvas::new(
-        point!(PLAYER_LEFT_MARGIN, y),
-        width - PLAYER_LEFT_MARGIN - PLAYER_RIGHT_MARGIN,
-        PLAYER_HEIGHT,
-    )
+    Canvas::new(point!(0, y), width, PLAYER_HEIGHT)
 }
 
 pub fn folders_view_canvas(width: u16, height: u16) -> Canvas {
@@ -42,6 +36,10 @@ pub fn playlist_canvas(width: u16, height: u16) -> Canvas {
     let x = fwidth + CENTER_MARGIN;
     let height = main_height(height);
     Canvas::new(point!(x, 0), width - fwidth - CENTER_MARGIN, height)
+}
+
+pub fn console_canvas(width: u16, height: u16) -> Canvas {
+    Canvas::new(point!(0, height - CONSOLE_HEIGHT), width, CONSOLE_HEIGHT)
 }
 
 #[cfg(test)]

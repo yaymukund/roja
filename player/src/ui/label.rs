@@ -6,6 +6,7 @@ use crate::util::{terminal, Point};
 use crate::SETTINGS;
 
 pub enum Label {
+    Console,
     PlayerControls,
     PlayerInfoBar,
     PlayerProgress,

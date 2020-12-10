@@ -1,3 +1,4 @@
+mod console;
 mod focus;
 mod folders_view;
 mod list;
@@ -5,13 +6,16 @@ mod now_playing;
 mod player;
 mod player_events;
 mod playlist_view;
+mod search;
 mod terminal;
 mod window;
 
+pub use console::Console;
 pub use focus::Focus;
 pub use folders_view::FoldersView;
 pub use list::*;
 pub use now_playing::NowPlaying;
 pub use playlist_view::PlaylistView;
+pub use search::Search;
 pub use terminal::Terminal;
 pub use window::Window;

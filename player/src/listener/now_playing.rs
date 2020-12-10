@@ -13,7 +13,7 @@ impl Listener for NowPlayingListener {
     fn on_event(&mut self, event: &Event) {
         match event {
             Event::QueuePlaylist(playlist) => self.playlist = playlist.clone(),
-            Event::ChangePlaylistPos(new_index) => {
+            Event::ChangePlaylistStart(new_index) => {
                 self.playlist.selected_index = *new_index as usize;
                 let event = Event::DisplayPlaylist(self.playlist.clone());
                 self.sender.send(event);

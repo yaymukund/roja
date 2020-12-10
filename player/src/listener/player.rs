@@ -1,6 +1,6 @@
 use crate::player::{Player, SeekableRanges};
 use crate::store::Playlist;
-use crate::ui::{layout, Event, IntoListener, Label, Listener};
+use crate::ui::{layout, Direction, Event, IntoListener, Label, Listener, Section};
 use crate::util::{channel, fit_width, format_duration, Canvas, Point};
 
 //
@@ -41,6 +41,7 @@ impl IntoListener for Player<'static> {
     type LType = PlayerComponent;
     fn into_listener(self, _sender: channel::Sender<Event>) -> Self::LType {
         Self::LType {
+            active: true,
             player: self,
             canvas: Canvas::Uninitialized,
             seekable_ranges: Vec::new(),
@@ -49,12 +50,17 @@ impl IntoListener for Player<'static> {
 }
 
 pub struct PlayerComponent {
+    active: bool,
     player: Player<'static>,
     canvas: Canvas,
     seekable_ranges: SeekableRanges,
 }
 
 impl PlayerComponent {
+    fn change_focus(&mut self, section: &Section) {
+        self.active = section != &Section::Search;
+    }
+
     fn draw_indicator(&self) {
         let indicator = if self.player.paused() {
             INDICATOR_PAUSED
@@ -184,20 +190,20 @@ impl PlayerComponent {
         self.player.playlist_play_index(playlist.selected_index);
     }
 
-    fn seek_forward(&self) {
-        if self.player.is_track_loaded() {
-            self.player.seek_forward();
+    fn seek(&self, direction: Direction) {
+        if !self.player.is_track_loaded() || !self.active {
+            return;
         }
-    }
 
-    fn seek_backward(&self) {
-        if self.player.is_track_loaded() {
-            self.player.seek_backward();
+        match direction {
+            Direction::Left => self.player.seek_backward(),
+            Direction::Right => self.player.seek_forward(),
+            _ => {}
         }
     }
 
     fn toggle_pause(&self) {
-        if self.player.is_track_loaded() {
+        if self.active && self.player.is_track_loaded() {
             self.player.toggle_pause();
         }
     }
@@ -211,12 +217,16 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
+            Event::Focus(section) => self.change_focus(section),
             Event::QueuePlaylist(playlist) => self.queue_tracks(playlist),
             Event::Resize(width, height) => self.resize(*width, *height),
-            Event::SeekForward => self.seek_forward(),
-            Event::SeekBackward => self.seek_backward(),
-            Event::TogglePause => self.toggle_pause(),
-            _ => {}
+            _ => {
+                if event.is_char_press('c') {
+                    self.toggle_pause();
+                } else if let Some(dir) = event.direction() {
+                    self.seek(dir);
+                }
+            }
         }
 
         if !self.should_draw() {
@@ -225,13 +235,8 @@ impl Listener for PlayerComponent {
 
         match event {
             Event::Draw => self.draw(),
-            Event::SeekForward | Event::SeekBackward => {
-                self.draw_current_time(self.player.elapsed())
-            }
             Event::ChangeTitle => self.draw_info(),
-            Event::ChangeIdle | Event::ChangeIndicator | Event::TogglePause => {
-                self.draw_indicator()
-            }
+            Event::ChangeIdle | Event::ChangeIndicator => self.draw_indicator(),
             Event::ChangeCurrentTime(secs) => {
                 self.draw_current_time(*secs);
                 self.draw_progress();
@@ -241,7 +246,15 @@ impl Listener for PlayerComponent {
                 self.draw_progress();
             }
             Event::ChangeSeekableRanges(ranges) => self.update_seekable_ranges(ranges.clone()),
-            _ => {}
+            _ => {
+                if event.is_char_press('c') {
+                    self.draw_indicator()
+                } else if let Some(dir) = event.direction() {
+                    if dir == Direction::Left || dir == Direction::Right {
+                        self.draw_current_time(self.player.elapsed())
+                    }
+                }
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ pub mod layout;
 mod listener;
 
 use crate::util::{channel, terminal};
-pub use event::Event;
+pub use event::*;
 pub use label::Label;
 pub use listener::{IntoListener, Listener};
 
@@ -14,6 +14,7 @@ pub struct QuitError;
 pub enum Section {
     FoldersList,
     Playlist,
+    Search,
 }
 
 pub struct UI {
@@ -37,7 +38,7 @@ impl UI {
 
         loop {
             match self.receiver.recv() {
-                Some(Event::Quit) => return Err(QuitError),
+                Some(event) if event.is_char_press('q') => return Err(QuitError),
                 Some(event) => self.send(&event),
                 None => {
                     terminal::flush();

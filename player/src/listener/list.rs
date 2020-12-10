@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::cmp;
 use std::ops::{Deref, RangeInclusive};
 
-use crate::ui::{Event, Label, Listener, Section};
+use crate::ui::{Direction, Event, Label, Listener, Section};
 use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
@@ -407,8 +407,11 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
             Event::Draw => self.draw(),
             Event::Resize(width, height) => self.resize_canvas(*width, *height),
             Event::Focus(section) => self.change_focus(*section),
-            Event::Enter => self.try_select_item(),
-            _ => {}
+            _ => {
+                if event.is_enter() {
+                    self.try_select_item();
+                }
+            }
         }
 
         if !self.is_focused() {
@@ -417,11 +420,11 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
 
         let old_selected_index = self.selected_index;
 
-        match event {
-            Event::MoveDown => self.scroll_down(),
-            Event::MoveUp => self.scroll_up(),
-            Event::PageDown => self.scroll_page_down(),
-            Event::PageUp => self.scroll_page_up(),
+        match event.direction() {
+            Some(Direction::Down) => self.scroll_down(),
+            Some(Direction::Up) => self.scroll_up(),
+            Some(Direction::PageDown) => self.scroll_page_down(),
+            Some(Direction::PageUp) => self.scroll_page_up(),
             _ => {}
         }
 

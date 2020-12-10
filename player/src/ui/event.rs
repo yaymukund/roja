@@ -1,4 +1,5 @@
-use crossterm::event::{Event as CrosstermEvent, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::Event as CrosstermEvent;
+pub use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use libmpv::events::{Event as MpvEvent, PropertyData};
 use libmpv::MpvNode;
 use std::collections::HashMap;
@@ -22,23 +23,8 @@ pub enum Event {
     // switch focus between sections
     Focus(Section),
 
-    // exit
-    Quit,
-    // pause/unpause
-    TogglePause,
-    // ← 5s
-    SeekBackward,
-    // → 5s
-    SeekForward,
-    // move up/down in the current section
-    MoveDown,
-    MoveUp,
-    PageDown,
-    PageUp,
-    // change section
-    TabFocus,
-    // select whatever's highlighted
-    Enter,
+    // Keypresses, incl. directional presses.
+    Key(KeyEvent),
 
     // respond to mpv property changes
     ChangeTotalTime(i64),
@@ -47,11 +33,66 @@ pub enum Event {
     ChangeTitle,
     ChangeIdle,
     ChangeSeekableRanges(SeekableRanges),
-    ChangePlaylistPos(i64),
+    ChangePlaylistStart(i64),
 
     // log & ignore
     UnknownMpvEvent,
     UnknownCrosstermEvent,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+    PageDown,
+    PageUp,
+}
+
+impl Event {
+    pub fn is_char_press(&self, c: char) -> bool {
+        self.is_keycode(KeyCode::Char(c))
+    }
+
+    pub fn is_tab(&self) -> bool {
+        self.is_keycode(KeyCode::Tab)
+    }
+
+    pub fn is_enter(&self) -> bool {
+        self.is_keycode(KeyCode::Enter)
+    }
+
+    fn is_keycode(&self, keycode: KeyCode) -> bool {
+        matches!(self, Event::Key(KeyEvent { code, .. }) if *code == keycode)
+    }
+
+    pub fn direction(&self) -> Option<Direction> {
+        let ev = self.key_event()?;
+
+        if ev.modifiers.contains(KeyModifiers::CONTROL) {
+            match ev.code {
+                KeyCode::Down | KeyCode::Char('j') => return Some(Direction::PageDown),
+                KeyCode::Up | KeyCode::Char('k') => return Some(Direction::PageUp),
+                _ => {}
+            }
+        }
+
+        match ev.code {
+            KeyCode::Char('h') | KeyCode::Left => Some(Direction::Left),
+            KeyCode::Char('j') | KeyCode::Down => Some(Direction::Down),
+            KeyCode::Char('k') | KeyCode::Up => Some(Direction::Up),
+            KeyCode::Char('l') | KeyCode::Right => Some(Direction::Right),
+            _ => None,
+        }
+    }
+
+    fn key_event(&self) -> Option<KeyEvent> {
+        match self {
+            Event::Key(key_event) => Some(*key_event),
+            _ => None,
+        }
+    }
 }
 
 impl<'a> From<MpvEvent<'a>> for Event {
@@ -93,7 +134,7 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 name: "playlist-pos",
                 change: PropertyData::Int64(new_index),
                 ..
-            } => Event::ChangePlaylistPos(new_index),
+            } => Event::ChangePlaylistStart(new_index),
 
             _ => Event::UnknownMpvEvent,
         }
@@ -119,32 +160,22 @@ impl From<CrosstermEvent> for Event {
     fn from(crossterm_event: CrosstermEvent) -> Self {
         match crossterm_event {
             CrosstermEvent::Resize(cols, rows) => Event::Resize(cols, rows),
-            CrosstermEvent::Key(KeyEvent { code, modifiers }) => from_key_event(code, modifiers),
+            CrosstermEvent::Key(key_event) => Event::Key(key_event),
             _ => Event::UnknownCrosstermEvent,
         }
     }
 }
-
-fn from_key_event(code: KeyCode, modifiers: KeyModifiers) -> Event {
-    if modifiers.contains(KeyModifiers::CONTROL) {
-        match code {
-            KeyCode::Down | KeyCode::Char('j') => return Event::PageDown,
-            KeyCode::Up | KeyCode::Char('k') => return Event::PageUp,
-            _ => {}
-        }
-    }
-
-    match code {
-        KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
-        KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
-        KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
-        KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
-        KeyCode::PageUp => Event::PageUp,
-        KeyCode::PageDown => Event::PageDown,
-        KeyCode::Tab => Event::TabFocus,
-        KeyCode::Enter => Event::Enter,
-        KeyCode::Char('c') => Event::TogglePause,
-        KeyCode::Char('q') => Event::Quit,
-        _ => Event::UnknownCrosstermEvent,
-    }
-}
+// match code {
+//     KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
+//     KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
+//     KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
+//     KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
+//     KeyCode::PageUp => Event::PageUp,
+//     KeyCode::PageDown => Event::PageDown,
+//     KeyCode::Tab => Event::TabFocus,
+//     KeyCode::Enter => Event::Enter,
+//     KeyCode::Char('/') => Event::OpenSearch,
+//     KeyCode::Char('c') => Event::TogglePause,
+//     KeyCode::Char('q') => Event::Quit,
+//     _ => Event::UnknownCrosstermEvent,
+// }

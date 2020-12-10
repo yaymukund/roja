@@ -14,6 +14,7 @@ pub use deserialize_color::SColor;
 static BASEDIRECTORY_PREFIX: &str = "roja";
 static FILENAME_CONFIG: &str = "config.toml";
 static FILENAME_DB: &str = "roja-store.db";
+static FILENAME_SEARCH_INDEX: &str = "roja-search-index";
 
 thread_local! {
     pub static SETTINGS: Settings = Settings::build().unwrap();
@@ -40,6 +41,12 @@ impl Settings {
         self.xdg
             .place_data_file(FILENAME_DB)
             .expect("could not place database file")
+    }
+
+    pub fn place_search_index_file(&self) -> PathBuf {
+        self.xdg
+            .place_data_file(FILENAME_SEARCH_INDEX)
+            .expect("could not place search index file")
     }
 
     pub fn music_library_path(&self) -> &PathBuf {
