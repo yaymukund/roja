@@ -2,7 +2,7 @@
 
 Roja is a TUI music player written in Rust. It's still a WIP.
 
-![Screenshot of roja in action](/assets/demo.png?raw=true "Roja Demo Screenshot")
+[![Screenshot of roja in action](/assets/demo.png?raw=true "Roja Demo Screenshot")][demo_video]
 
 ### TODO
 
@@ -16,3 +16,4 @@ Roja is a TUI music player written in Rust. It's still a WIP.
 
 [libmpv_rs]: https://github.com/ParadoxSpiral/libmpv-rs
 [fst_url]: https://github.com/BurntSushi/fst
+[demo_video]: https://www.youtube.com/watch?v=-yVEZjSV0iM
