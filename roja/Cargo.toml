@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 alphanumeric-sort = "1.4"
 anyhow = "1.0"
-crossterm = "0.18"
+crossterm = "0.19"
 env_logger = "0.8"
 fst = "0.4"
 gumdrop = "0.8"
