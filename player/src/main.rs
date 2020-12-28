@@ -9,7 +9,6 @@ mod ui;
 
 use std::{thread, time};
 
-use anyhow::Result;
 pub use settings::SETTINGS;
 use ui::UI;
 

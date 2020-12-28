@@ -7,6 +7,7 @@ use crate::SETTINGS;
 
 pub enum Label {
     Console,
+    ConsoleHighlighted,
     PlayerControls,
     PlayerInfoBar,
     PlayerProgress,
@@ -29,7 +30,9 @@ impl Label {
                 PlayerControls | PlayerProgress | PlayerProgressEmpty | PlayerProgressBuffered => {
                     Some(*colors.controls_bg())
                 }
-                PlayerInfoBar | ListTitle | ListFocusedHighlightedRow => Some(*colors.main()),
+                ConsoleHighlighted | PlayerInfoBar | ListTitle | ListFocusedHighlightedRow => {
+                    Some(*colors.main())
+                }
                 ListUnfocusedHighlightedRow => Some(*colors.unfocused()),
                 _ => None,
             }
