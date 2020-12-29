@@ -1,5 +1,5 @@
 use crate::store::Playlist;
-use crate::ui::{Event, IntoListener, Listener, Section};
+use crate::ui::{Event, IntoListener, Listener};
 use crate::util::channel;
 
 pub struct Search;

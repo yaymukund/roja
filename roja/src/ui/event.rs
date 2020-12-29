@@ -4,7 +4,6 @@ use libmpv::events::{Event as MpvEvent, PropertyData};
 use libmpv::MpvNode;
 use std::collections::HashMap;
 
-use super::Section;
 use crate::player::SeekableRanges;
 use crate::store::Playlist;
 
@@ -20,8 +19,11 @@ pub enum Event {
     DisplayPlaylist(Playlist),
     // queue songs in playlist, starting with selected song
     QueuePlaylist(Playlist),
-    // switch focus between sections
-    Focus(Section),
+    Quit,
+    OpenPlaylist,
+    OpenFolderList,
+    OpenSearch,
+    CloseSearch,
 
     // Keypresses, incl. directional presses.
     Key(KeyEvent),
@@ -51,20 +53,25 @@ pub enum Direction {
 }
 
 impl Event {
-    pub fn is_char_press(&self, c: char) -> bool {
-        self.is_keycode(KeyCode::Char(c))
-    }
-
-    pub fn is_tab(&self) -> bool {
-        self.is_keycode(KeyCode::Tab)
+    pub fn pressed_char(&self) -> Option<char> {
+        match self {
+            Event::Key(KeyEvent {
+                code: KeyCode::Char(c),
+                ..
+            }) => Some(*c),
+            _ => None,
+        }
     }
 
     pub fn is_enter(&self) -> bool {
-        self.is_keycode(KeyCode::Enter)
+        matches!(self.keycode(), Some(KeyCode::Enter))
     }
 
-    fn is_keycode(&self, keycode: KeyCode) -> bool {
-        matches!(self, Event::Key(KeyEvent { code, .. }) if *code == keycode)
+    pub fn keycode(&self) -> Option<&KeyCode> {
+        match self {
+            Event::Key(KeyEvent { code, .. }) => Some(code),
+            _ => None,
+        }
     }
 
     pub fn direction(&self) -> Option<Direction> {
@@ -165,17 +172,3 @@ impl From<CrosstermEvent> for Event {
         }
     }
 }
-// match code {
-//     KeyCode::Left | KeyCode::Char('h') => Event::SeekBackward,
-//     KeyCode::Right | KeyCode::Char('l') => Event::SeekForward,
-//     KeyCode::Down | KeyCode::Char('j') => Event::MoveDown,
-//     KeyCode::Up | KeyCode::Char('k') => Event::MoveUp,
-//     KeyCode::PageUp => Event::PageUp,
-//     KeyCode::PageDown => Event::PageDown,
-//     KeyCode::Tab => Event::TabFocus,
-//     KeyCode::Enter => Event::Enter,
-//     KeyCode::Char('/') => Event::OpenSearch,
-//     KeyCode::Char('c') => Event::TogglePause,
-//     KeyCode::Char('q') => Event::Quit,
-//     _ => Event::UnknownCrosstermEvent,
-// }

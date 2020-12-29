@@ -1,27 +1,35 @@
-use crate::ui::{Event, IntoListener, Listener, Section};
+use crate::ui::{Event, IntoListener, KeyCode, Listener};
 use crate::util::channel;
 
 pub struct Focus;
 
 pub struct FocusListener {
-    focused_section: Section,
+    opened_playlist: bool,
+    searching: bool,
     sender: channel::Sender<Event>,
 }
 
 impl FocusListener {
     fn focus_next_tab(&mut self) {
-        let next = if self.focused_section == Section::FoldersList {
-            Section::Playlist
+        let next = if self.opened_playlist {
+            Event::OpenFolderList
         } else {
-            Section::FoldersList
+            Event::OpenPlaylist
         };
 
-        self.sender.send(Event::Focus(next));
-        self.focused_section = next;
+        self.sender.send(next);
+        self.opened_playlist = !self.opened_playlist;
     }
 
-    fn focus_search(&mut self) {
-        self.sender.send(Event::Focus(Section::Search));
+    fn open_search(&mut self) {
+        self.searching = true;
+        self.opened_playlist = false;
+        self.sender.send(Event::OpenSearch);
+    }
+
+    fn close_search(&mut self) {
+        self.searching = false;
+        self.sender.send(Event::CloseSearch);
     }
 }
 
@@ -30,7 +38,8 @@ impl IntoListener for Focus {
 
     fn into_listener(self, sender: channel::Sender<Event>) -> Self::LType {
         Self::LType {
-            focused_section: Section::FoldersList,
+            opened_playlist: false,
+            searching: false,
             sender,
         }
     }
@@ -38,10 +47,13 @@ impl IntoListener for Focus {
 
 impl Listener for FocusListener {
     fn on_event(&mut self, event: &Event) {
-        if event.is_char_press('/') {
-            self.focus_search();
-        } else if event.is_tab() {
-            self.focus_next_tab();
+        match (self.searching, event.keycode()) {
+            (true, Some(KeyCode::Esc)) => self.close_search(),
+            (true, _) => return,
+            (false, Some(KeyCode::Char('/'))) => self.open_search(),
+            (false, Some(KeyCode::Char('q'))) => self.sender.send(Event::Quit),
+            (false, Some(KeyCode::Tab)) => self.focus_next_tab(),
+            _ => {}
         }
     }
 }

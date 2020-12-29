@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use crate::listener::{ColumnWidth, List, ListBuilder, ListRow};
 use crate::store::{Playlist, Track};
-use crate::ui::{layout, Event, IntoListener, Section};
+use crate::ui::{layout, Event, IntoListener};
 use crate::util::{channel, format_duration};
 
 pub enum TrackColumn {
@@ -35,7 +35,6 @@ impl IntoListener for PlaylistView {
             tracks: Rc::new(Vec::new()),
             selected_index: 0,
         })
-        .section(Section::Playlist)
         .make_canvas(layout::playlist_canvas)
         .column(TrackColumn::TrackNumber, "#", ColumnWidth::Absolute(4))
         .column(TrackColumn::Title, "Title", ColumnWidth::Auto)
@@ -48,12 +47,15 @@ impl IntoListener for PlaylistView {
             let event = Event::QueuePlaylist(playlist.clone());
             sender.send(event);
         })
-        .on_event(|event: &Event, list: &mut List<Track, Playlist>| {
-            if let Event::DisplayPlaylist(playlist) = event {
+        .on_event(|event: &Event, list: &mut Self::LType| match event {
+            Event::OpenPlaylist => list.focus(),
+            Event::OpenFolderList | Event::OpenSearch => list.unfocus(),
+            Event::DisplayPlaylist(playlist) => {
                 list.set_items(playlist.clone());
                 list.set_selected_index(playlist.selected_index);
                 list.draw();
             }
+            _ => {}
         })
         .build()
     }

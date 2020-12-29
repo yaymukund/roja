@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::cmp;
 use std::ops::{Deref, RangeInclusive};
 
-use crate::ui::{Direction, Event, Label, Listener, Section};
+use crate::ui::{Direction, Event, Label, Listener};
 use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
@@ -21,7 +21,6 @@ impl<T, R, L> OnEvent<R, L> for T where T: Fn(&Event, &mut List<R, L>) {}
 pub struct ListBuilder<R: ListRow, L: Deref<Target = [R]>> {
     columns: Vec<ListColumn<R>>,
     make_canvas: Option<Box<dyn Fn(u16, u16) -> Canvas>>,
-    section: Option<Section>,
     focused: bool,
     on_highlight: Option<BoxedOnItem<L>>,
     on_select: Option<BoxedOnItem<L>>,
@@ -36,7 +35,6 @@ pub struct List<R: ListRow, L: Deref<Target = [R]>> {
     selected_index: u16,
     make_canvas: Box<dyn Fn(u16, u16) -> Canvas>,
     focused: bool,
-    section: Section,
     on_highlight: Option<BoxedOnItem<L>>,
     on_select: Option<BoxedOnItem<L>>,
     on_event: Option<BoxedOnEvent<R, L>>,
@@ -61,7 +59,6 @@ impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
         Self {
             columns: Vec::new(),
             make_canvas: None,
-            section: None,
             focused: false,
             on_highlight: None,
             on_select: None,
@@ -72,11 +69,6 @@ impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
 
     pub fn autofocus(mut self) -> Self {
         self.focused = true;
-        self
-    }
-
-    pub fn section(mut self, section: Section) -> Self {
-        self.section = Some(section);
         self
     }
 
@@ -125,8 +117,6 @@ impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
     pub fn build(self) -> List<R, L> {
         if self.make_canvas.is_none() {
             panic!("missing list builder argument: `make_canvas`");
-        } else if self.section.is_none() {
-            panic!("missing list builder argument: `section`");
         } else {
             List {
                 canvas: Canvas::Uninitialized,
@@ -136,7 +126,6 @@ impl<R: ListRow, L: Deref<Target = [R]>> ListBuilder<R, L> {
                 on_highlight: self.on_highlight,
                 on_select: self.on_select,
                 on_event: self.on_event,
-                section: self.section.unwrap(),
                 selected_index: 0,
                 start_index: 0,
                 items: self.items,
@@ -168,12 +157,14 @@ impl<R: ListRow, L: Deref<Target = [R]>> List<R, L> {
         }
     }
 
-    fn focus(&mut self) {
+    pub fn focus(&mut self) {
         self.focused = true;
+        self.draw_row(self.selected_position());
     }
 
-    fn unfocus(&mut self) {
+    pub fn unfocus(&mut self) {
         self.focused = false;
+        self.draw_row(self.selected_position());
     }
 
     fn is_focused(&self) -> bool {
@@ -383,22 +374,11 @@ impl<R: ListRow, L: Deref<Target = [R]>> List<R, L> {
         self.canvas = (&self.make_canvas)(width, height);
         self.calculate_widths();
     }
-
-    fn change_focus(&mut self, section: Section) {
-        if self.section == section {
-            self.focus();
-        } else {
-            self.unfocus();
-        }
-
-        self.draw_row(self.selected_position());
-    }
 }
 
 impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
     fn on_event(&mut self, event: &Event) {
-        let on_event = self.on_event.take();
-        if let Some(on_event) = on_event {
+        if let Some(on_event) = self.on_event.take() {
             on_event(event, self);
             self.on_event.replace(on_event);
         }
@@ -406,7 +386,6 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
         match event {
             Event::Draw => self.draw(),
             Event::Resize(width, height) => self.resize_canvas(*width, *height),
-            Event::Focus(section) => self.change_focus(*section),
             _ => {
                 if event.is_enter() {
                     self.try_select_item();

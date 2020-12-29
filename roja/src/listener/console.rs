@@ -1,5 +1,5 @@
 // use crate::store::Playlist;
-use crate::ui::{layout, Event, IntoListener, KeyCode, KeyEvent, Label, Listener, Section};
+use crate::ui::{layout, Event, IntoListener, KeyCode, KeyEvent, Label, Listener};
 use crate::util::{channel, Canvas};
 
 const SEARCH_PREFIX: &str = "/";
@@ -25,6 +25,15 @@ impl ConsoleListener {
     fn enable(&mut self) {
         self.searching = true;
         self.draw();
+    }
+
+    fn disable(&mut self) {
+        self.searching = false;
+        self.text.clear();
+        self.text_start_idx = 0;
+        self.cursor_offset = 0;
+        self.canvas
+            .draw(" ".repeat(self.canvas.width() as usize), Label::Console);
     }
 
     fn width(&self) -> u16 {
@@ -125,7 +134,8 @@ impl Listener for ConsoleListener {
     fn on_event(&mut self, event: &Event) {
         match event {
             Event::Draw => self.draw(),
-            Event::Focus(Section::Search) => self.enable(),
+            Event::OpenSearch => self.enable(),
+            Event::CloseSearch => self.disable(),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::Key(KeyEvent { code, .. }) if self.searching => match code {
                 KeyCode::Char(c) => self.on_key_char(c),

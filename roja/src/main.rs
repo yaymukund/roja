@@ -9,6 +9,8 @@ mod ui;
 
 use std::{thread, time};
 
+const TICK_INTERVAL_MS: time::Duration = time::Duration::from_millis(10);
+
 pub use settings::SETTINGS;
 use ui::UI;
 
@@ -31,6 +33,6 @@ fn main() {
     ui.redraw();
 
     while let Ok(()) = ui.tick() {
-        thread::sleep(time::Duration::from_millis(10));
+        thread::sleep(TICK_INTERVAL_MS);
     }
 }

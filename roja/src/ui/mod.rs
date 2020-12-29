@@ -10,13 +10,6 @@ pub use listener::{IntoListener, Listener};
 
 pub struct QuitError;
 
-#[derive(Debug, Clone, PartialEq, Copy)]
-pub enum Section {
-    FoldersList,
-    Playlist,
-    Search,
-}
-
 pub struct UI {
     listeners: Vec<Box<dyn Listener>>,
     receiver: channel::Receiver<Event>,
@@ -38,7 +31,7 @@ impl UI {
 
         loop {
             match self.receiver.recv() {
-                Some(event) if event.is_char_press('q') => return Err(QuitError),
+                Some(Event::Quit) => return Err(QuitError),
                 Some(event) => self.send(&event),
                 None => {
                     terminal::flush();

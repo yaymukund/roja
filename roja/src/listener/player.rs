@@ -1,6 +1,6 @@
 use crate::player::{Player, SeekableRanges};
 use crate::store::Playlist;
-use crate::ui::{layout, Direction, Event, IntoListener, Label, Listener, Section};
+use crate::ui::{layout, Direction, Event, IntoListener, Label, Listener};
 use crate::util::{channel, fit_width, format_duration, Canvas, Point};
 
 //
@@ -57,10 +57,6 @@ pub struct PlayerComponent {
 }
 
 impl PlayerComponent {
-    fn change_focus(&mut self, section: &Section) {
-        self.active = section != &Section::Search;
-    }
-
     fn draw_indicator(&self) {
         let indicator = if self.player.paused() {
             INDICATOR_PAUSED
@@ -217,11 +213,12 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) {
         match event {
-            Event::Focus(section) => self.change_focus(section),
+            Event::OpenSearch => self.active = false,
+            Event::CloseSearch => self.active = true,
             Event::QueuePlaylist(playlist) => self.queue_tracks(playlist),
             Event::Resize(width, height) => self.resize(*width, *height),
             _ => {
-                if event.is_char_press('c') {
+                if let Some('c') = event.pressed_char() {
                     self.toggle_pause();
                 } else if let Some(dir) = event.direction() {
                     self.seek(dir);
@@ -247,7 +244,7 @@ impl Listener for PlayerComponent {
             }
             Event::ChangeSeekableRanges(ranges) => self.update_seekable_ranges(ranges.clone()),
             _ => {
-                if event.is_char_press('c') {
+                if let Some('c') = event.pressed_char() {
                     self.draw_indicator()
                 } else if let Some(dir) = event.direction() {
                     if dir == Direction::Left || dir == Direction::Right {
