@@ -17,19 +17,25 @@ impl FocusListener {
             Event::OpenPlaylist
         };
 
-        self.sender.send(next);
+        self.sender
+            .send(next)
+            .expect("could not send event to disconnected channel");
         self.opened_playlist = !self.opened_playlist;
     }
 
     fn open_search(&mut self) {
         self.searching = true;
         self.opened_playlist = false;
-        self.sender.send(Event::OpenSearch);
+        self.sender
+            .send(Event::OpenSearch)
+            .expect("could not send event to disconnected channel");
     }
 
     fn close_search(&mut self) {
         self.searching = false;
-        self.sender.send(Event::CloseSearch);
+        self.sender
+            .send(Event::CloseSearch)
+            .expect("could not send event to disconnected channel");
     }
 }
 
@@ -51,7 +57,11 @@ impl Listener for FocusListener {
             (true, Some(KeyCode::Esc)) => self.close_search(),
             (true, _) => return,
             (false, Some(KeyCode::Char('/'))) => self.open_search(),
-            (false, Some(KeyCode::Char('q'))) => self.sender.send(Event::Quit),
+            (false, Some(KeyCode::Char('q'))) => {
+                self.sender
+                    .send(Event::Quit)
+                    .expect("channel disconnected before exit");
+            }
             (false, Some(KeyCode::Tab)) => self.focus_next_tab(),
             _ => {}
         }

@@ -3,6 +3,7 @@ pub use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use libmpv::events::{Event as MpvEvent, PropertyData};
 use libmpv::MpvNode;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::player::SeekableRanges;
 use crate::store::Playlist;
@@ -24,6 +25,7 @@ pub enum Event {
     OpenFolderList,
     OpenSearch,
     CloseSearch,
+    Search(Rc<String>),
 
     // Keypresses, incl. directional presses.
     Key(KeyEvent),

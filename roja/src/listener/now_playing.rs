@@ -16,8 +16,12 @@ impl Listener for NowPlayingListener {
             Event::ChangePlaylistStart(new_index) => {
                 self.playlist.selected_index = *new_index as usize;
                 let event = Event::DisplayPlaylist(self.playlist.clone());
-                self.sender.send(event);
-                self.sender.send(Event::OpenPlaylist);
+                self.sender
+                    .send(event)
+                    .expect("could not send event to disconnected channel");
+                self.sender
+                    .send(Event::OpenPlaylist)
+                    .expect("could not send event to disconnected channel");
             }
             _ => {}
         }

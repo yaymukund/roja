@@ -27,13 +27,14 @@ impl UI {
     }
 
     pub fn tick(&mut self) -> Result<(), QuitError> {
-        self.send(&Event::Tick);
+        self.broadcast(&Event::Tick);
 
         loop {
-            match self.receiver.recv() {
-                Some(Event::Quit) => return Err(QuitError),
-                Some(event) => self.send(&event),
-                None => {
+            match self.receiver.try_recv() {
+                Ok(Event::Quit) => return Err(QuitError),
+                Ok(event) => self.broadcast(&event),
+                Err(channel::TryRecvError::Disconnected) => panic!("disconnected before quitting"),
+                Err(channel::TryRecvError::Empty) => {
                     terminal::flush();
                     return Ok(());
                 }
@@ -43,10 +44,10 @@ impl UI {
 
     pub fn redraw(&mut self) {
         let (width, height) = terminal::size();
-        self.send(&Event::Resize(width, height));
+        self.broadcast(&Event::Resize(width, height));
     }
 
-    fn send(&mut self, event: &Event) {
+    fn broadcast(&mut self, event: &Event) {
         for listener in &mut self.listeners {
             listener.on_event(event)
         }

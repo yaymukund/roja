@@ -22,7 +22,9 @@ pub struct PlayerEventsListener<'a> {
 impl<'a> PlayerEventsListener<'a> {
     fn wait_event(&mut self) {
         if let Some(Ok(event)) = self.context.wait_event(0.0) {
-            self.sender.send(event.into());
+            self.sender
+                .send(event.into())
+                .expect("could not send event to disconnected channel");
         }
     }
 }

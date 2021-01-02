@@ -31,10 +31,12 @@ impl IntoListener for FoldersView {
                 let folder_id = folders[index].id;
                 let tracks =
                     get_tracks_by_folder_id(folder_id).expect("could not find tracks for folder");
-                sender.send(Event::DisplayPlaylist(Playlist {
-                    tracks: Rc::new(tracks),
-                    selected_index: 0,
-                }));
+                sender
+                    .send(Event::DisplayPlaylist(Playlist {
+                        tracks: Rc::new(tracks),
+                        selected_index: 0,
+                    }))
+                    .expect("could not send event to disconnected channel");
             })
             .on_event(|event: &Event, list: &mut Self::LType| match event {
                 Event::OpenPlaylist | Event::OpenSearch => list.unfocus(),

@@ -1,6 +1,7 @@
-// use crate::store::Playlist;
 use crate::ui::{layout, Event, IntoListener, KeyCode, KeyEvent, Label, Listener};
 use crate::util::{channel, Canvas};
+
+use std::rc::Rc;
 
 const SEARCH_PREFIX: &str = "/";
 const LEFT_OFFSET: u16 = SEARCH_PREFIX.len() as u16;
@@ -84,6 +85,7 @@ impl ConsoleListener {
         }
 
         self.draw();
+        self.send_search_event();
     }
 
     fn on_key_backspace(&mut self) {
@@ -99,6 +101,7 @@ impl ConsoleListener {
             self.text.remove(cursor_idx as usize - 1);
             self.cursor_offset -= 1;
             self.draw();
+            self.send_search_event();
         }
     }
 
@@ -127,6 +130,13 @@ impl ConsoleListener {
         }
 
         self.draw();
+    }
+
+    fn send_search_event(&self) {
+        let text = Rc::new(self.text.to_lowercase());
+        self.sender
+            .send(Event::Search(text))
+            .expect("could not send event to a disconnected channel");
     }
 }
 

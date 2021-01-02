@@ -8,6 +8,7 @@ edition = "2018"
 [dependencies]
 alphanumeric-sort = "1.4"
 anyhow = "1.0"
+crossbeam-channel = "0.5"
 crossterm = "0.19"
 env_logger = "0.8"
 fst = "0.4"

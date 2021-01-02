@@ -23,7 +23,9 @@ impl Listener for TerminalListener {
             Event::Tick => self.wait_event(),
             Event::Resize(_cols, _rows) => {
                 terminal::clear_all();
-                self.sender.send(Event::Draw);
+                self.sender
+                    .send(Event::Draw)
+                    .expect("could not send event to disconnected channel");
             }
             _ => {}
         }
@@ -42,7 +44,9 @@ impl TerminalListener {
 
     fn wait_event(&self) {
         if let Some(event) = self.next_event() {
-            self.sender.send(event);
+            self.sender
+                .send(event)
+                .expect("could not send event to disconnected channel");
         }
     }
 }

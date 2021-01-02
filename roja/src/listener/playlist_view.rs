@@ -45,7 +45,9 @@ impl IntoListener for PlaylistView {
         })
         .on_select(move |_index: usize, playlist: &mut Playlist| {
             let event = Event::QueuePlaylist(playlist.clone());
-            sender.send(event);
+            sender
+                .send(event)
+                .expect("could not send event to disconnected channel");
         })
         .on_event(|event: &Event, list: &mut Self::LType| match event {
             Event::OpenPlaylist => list.focus(),
