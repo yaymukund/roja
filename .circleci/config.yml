@@ -1,7 +1,7 @@
 jobs:
   build:
     docker:
-      - image: cimg/rust:1.48.0
+      - image: yaymukund/cci-rust-roja:0.0.2
     steps:
       - checkout
       - run: cargo --version
