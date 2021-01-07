@@ -3,4 +3,4 @@ members = [
   "roja",
   "roja-build-database",
 ]
-default-members = ["roja"]
+default-run = "roja"
