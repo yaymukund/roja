@@ -2,6 +2,7 @@ use crate::player::{Player, SeekableRanges};
 use crate::store::Playlist;
 use crate::ui::{layout, Direction, Event, IntoListener, Label, Listener};
 use crate::util::{channel, fit_width, format_duration, Canvas, Point};
+use anyhow::Result;
 
 //
 // Basically, we're trying to render the following:
@@ -211,7 +212,7 @@ impl PlayerComponent {
 }
 
 impl Listener for PlayerComponent {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::OpenSearch => self.active = false,
             Event::CloseSearch => self.active = true,
@@ -227,7 +228,7 @@ impl Listener for PlayerComponent {
         }
 
         if !self.should_draw() {
-            return;
+            return Ok(());
         }
 
         match event {
@@ -253,6 +254,8 @@ impl Listener for PlayerComponent {
                 }
             }
         }
+
+        Ok(())
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::player::PlayerProperty;
 use crate::ui::{Event, IntoListener, Listener};
-use crate::util::channel;
+use crate::util::{channel, SendDiscard};
+use anyhow::Result;
 
 use libmpv::events::EventContext;
 
@@ -20,12 +21,11 @@ pub struct PlayerEventsListener<'a> {
 }
 
 impl<'a> PlayerEventsListener<'a> {
-    fn wait_event(&mut self) {
+    fn wait_event(&mut self) -> Result<()> {
         if let Some(Ok(event)) = self.context.wait_event(0.0) {
-            self.sender
-                .send(event.into())
-                .expect("could not send event to disconnected channel");
+            self.sender.send_discard(event.into())?;
         }
+        Ok(())
     }
 }
 
@@ -48,9 +48,11 @@ impl<'a> IntoListener for EventContext<'a> {
 }
 
 impl<'a> Listener for PlayerEventsListener<'a> {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         if let Event::Tick = event {
-            self.wait_event();
+            self.wait_event()?;
         }
+
+        Ok(())
     }
 }

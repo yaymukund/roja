@@ -37,7 +37,7 @@ pub enum Event {
     ChangeTitle,
     ChangeIdle,
     ChangeSeekableRanges(SeekableRanges),
-    ChangePlaylistStart(i64),
+    ChangePlaylistIndex(i64),
 
     // log & ignore
     UnknownMpvEvent,
@@ -143,7 +143,7 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 name: "playlist-pos",
                 change: PropertyData::Int64(new_index),
                 ..
-            } => Event::ChangePlaylistStart(new_index),
+            } => Event::ChangePlaylistIndex(new_index),
 
             _ => Event::UnknownMpvEvent,
         }

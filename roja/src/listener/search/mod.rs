@@ -6,7 +6,6 @@ use std::sync::Arc;
 // use crate::store::Playlist;
 use crate::ui::{Event, IntoListener, Listener};
 use crate::util::channel;
-use crate::SETTINGS;
 use search_index::{spawn_searcher, SearchEvent, SearchResult};
 
 pub struct Search;
@@ -38,21 +37,17 @@ impl SearchListener {
 }
 
 impl Listener for SearchListener {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::Tick => self.tick(),
-            Event::Quit => self
-                .index_sender
-                .send(SearchEvent::Quit)
-                .expect("could not send event to disconnected channel"),
+            Event::Quit => self.index_sender.send(SearchEvent::Quit)?,
             Event::Search(term) if term.len() > 2 => {
                 let event = SearchEvent::Search(Arc::new(term.to_string()));
-                self.index_sender
-                    .send(event)
-                    .expect("could not send event to disconnected channel");
+                self.index_sender.send(event)?;
             }
             _ => {}
         }
+        Ok(())
     }
 }
 

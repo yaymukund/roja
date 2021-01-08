@@ -1,5 +1,6 @@
 use crate::ui::{Event, IntoListener, KeyCode, Listener};
-use crate::util::channel;
+use crate::util::{channel, SendDiscard};
+use anyhow::Result;
 
 pub struct Focus;
 
@@ -10,32 +11,27 @@ pub struct FocusListener {
 }
 
 impl FocusListener {
-    fn focus_next_tab(&mut self) {
+    fn focus_next_tab(&mut self) -> Result<()> {
         let next = if self.opened_playlist {
             Event::OpenFolderList
         } else {
             Event::OpenPlaylist
         };
 
-        self.sender
-            .send(next)
-            .expect("could not send event to disconnected channel");
+        self.sender.send_discard(next)?;
         self.opened_playlist = !self.opened_playlist;
+        Ok(())
     }
 
-    fn open_search(&mut self) {
+    fn open_search(&mut self) -> Result<()> {
         self.searching = true;
         self.opened_playlist = false;
-        self.sender
-            .send(Event::OpenSearch)
-            .expect("could not send event to disconnected channel");
+        self.sender.send_discard(Event::OpenSearch)
     }
 
-    fn close_search(&mut self) {
+    fn close_search(&mut self) -> Result<()> {
         self.searching = false;
-        self.sender
-            .send(Event::CloseSearch)
-            .expect("could not send event to disconnected channel");
+        self.sender.send_discard(Event::CloseSearch)
     }
 }
 
@@ -52,18 +48,16 @@ impl IntoListener for Focus {
 }
 
 impl Listener for FocusListener {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         match (self.searching, event.keycode()) {
-            (true, Some(KeyCode::Esc)) => self.close_search(),
-            (true, _) => return,
-            (false, Some(KeyCode::Char('/'))) => self.open_search(),
-            (false, Some(KeyCode::Char('q'))) => {
-                self.sender
-                    .send(Event::Quit)
-                    .expect("channel disconnected before exit");
-            }
-            (false, Some(KeyCode::Tab)) => self.focus_next_tab(),
+            (true, Some(KeyCode::Esc)) => self.close_search()?,
+            (true, _) => {}
+            (false, Some(KeyCode::Char('/'))) => self.open_search()?,
+            (false, Some(KeyCode::Char('q'))) => self.sender.send_discard(Event::Quit)?,
+            (false, Some(KeyCode::Tab)) => self.focus_next_tab()?,
             _ => {}
         }
+
+        Ok(())
     }
 }

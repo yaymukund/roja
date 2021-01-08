@@ -1,9 +1,9 @@
+use crate::ui::{Direction, Event, Label, Listener};
+use crate::util::{fit_width, Canvas};
+use anyhow::Result;
 use std::borrow::Cow;
 use std::cmp;
 use std::ops::{Deref, RangeInclusive};
-
-use crate::ui::{Direction, Event, Label, Listener};
-use crate::util::{fit_width, Canvas};
 
 pub trait ListRow {
     type Column;
@@ -377,7 +377,7 @@ impl<R: ListRow, L: Deref<Target = [R]>> List<R, L> {
 }
 
 impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         if let Some(on_event) = self.on_event.take() {
             on_event(event, self);
             self.on_event.replace(on_event);
@@ -394,7 +394,7 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
         }
 
         if !self.is_focused() {
-            return;
+            return Ok(());
         }
 
         let old_selected_index = self.selected_index;
@@ -412,5 +412,7 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
                 on_highlight(self.selected_index as usize, &mut self.items);
             }
         }
+
+        Ok(())
     }
 }

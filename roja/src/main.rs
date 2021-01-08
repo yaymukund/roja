@@ -7,6 +7,8 @@ mod settings;
 pub mod store;
 mod ui;
 
+use crate::ui::Loop;
+use anyhow::Result;
 use std::{thread, time};
 
 const TICK_INTERVAL_MS: time::Duration = time::Duration::from_millis(10);
@@ -14,7 +16,7 @@ const TICK_INTERVAL_MS: time::Duration = time::Duration::from_millis(10);
 pub use settings::SETTINGS;
 use ui::UI;
 
-fn main() {
+fn main() -> Result<()> {
     env_logger::init();
     player::initialize_mpv();
 
@@ -30,9 +32,12 @@ fn main() {
     ui.register(listener::NowPlaying);
     ui.register(listener::Search);
     ui.register(listener::Console);
-    ui.redraw();
+    ui.redraw()?;
 
-    while let Ok(()) = ui.tick() {
+    while let Loop::Continue = ui.tick()? {
         thread::sleep(TICK_INTERVAL_MS);
     }
+
+    ui.tick()?;
+    Ok(())
 }

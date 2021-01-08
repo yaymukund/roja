@@ -3,4 +3,3 @@ members = [
   "roja",
   "roja-build-database",
 ]
-default-run = "roja"

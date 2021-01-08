@@ -1,5 +1,6 @@
 use crate::ui::{layout, Event, IntoListener, Label, Listener};
 use crate::util::{channel, Canvas};
+use anyhow::Result;
 
 pub struct Window;
 
@@ -30,7 +31,7 @@ impl WindowView {
 }
 
 impl Listener for WindowView {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::Resize(width, height) => {
                 self.canvas = layout::window_canvas(*width, *height);
@@ -39,6 +40,7 @@ impl Listener for WindowView {
             Event::Draw => self.draw(),
             _ => {}
         }
+        Ok(())
     }
 }
 

@@ -4,16 +4,20 @@ pub mod layout;
 mod listener;
 
 use crate::util::{channel, terminal};
+use anyhow::Result;
 pub use event::*;
 pub use label::Label;
 pub use listener::{IntoListener, Listener};
-
-pub struct QuitError;
 
 pub struct UI {
     listeners: Vec<Box<dyn Listener>>,
     receiver: channel::Receiver<Event>,
     sender: channel::Sender<Event>,
+}
+
+pub enum Loop {
+    Continue,
+    Stop,
 }
 
 impl UI {
@@ -26,31 +30,35 @@ impl UI {
         }
     }
 
-    pub fn tick(&mut self) -> Result<(), QuitError> {
-        self.broadcast(&Event::Tick);
+    pub fn tick(&mut self) -> Result<Loop> {
+        self.broadcast(&Event::Tick)?;
 
         loop {
             match self.receiver.try_recv() {
-                Ok(Event::Quit) => return Err(QuitError),
-                Ok(event) => self.broadcast(&event),
-                Err(channel::TryRecvError::Disconnected) => panic!("disconnected before quitting"),
+                Ok(Event::Quit) => return Ok(Loop::Stop),
+                Ok(event) => self.broadcast(&event)?,
+                Err(channel::TryRecvError::Disconnected) => {
+                    panic!("disconnected before quitting");
+                }
                 Err(channel::TryRecvError::Empty) => {
                     terminal::flush();
-                    return Ok(());
+                    return Ok(Loop::Continue);
                 }
             }
         }
     }
 
-    pub fn redraw(&mut self) {
+    pub fn redraw(&mut self) -> Result<()> {
         let (width, height) = terminal::size();
-        self.broadcast(&Event::Resize(width, height));
+        self.broadcast(&Event::Resize(width, height))
     }
 
-    fn broadcast(&mut self, event: &Event) {
+    fn broadcast(&mut self, event: &Event) -> Result<()> {
         for listener in &mut self.listeners {
-            listener.on_event(event)
+            listener.on_event(event)?
         }
+
+        Ok(())
     }
 
     pub fn register<D>(&mut self, data: D)

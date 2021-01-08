@@ -1,5 +1,4 @@
 use std::fs::File;
-use std::path::PathBuf;
 use std::sync::Arc;
 use std::thread;
 
@@ -42,8 +41,22 @@ impl SearchIndex {
     }
 
     fn search(&self, text: &str) {
+        // If there are more recent events, we can abandon processing the current event.
+        if !self.receiver.is_empty() {
+            return;
+        }
+
         let input = Subsequence::new(text);
         let ids = self.fst.search(input).into_stream().into_values();
+        self.display_results(ids);
+    }
+
+    fn display_results(&self, ids: Vec<u64>) {
+        // If there are more recent events, we can abandon processing the current event.
+        if !self.receiver.is_empty() {
+            return;
+        }
+
         self.sender
             .send(ids)
             .expect("could not send event to disconnected channel");
@@ -54,7 +67,9 @@ impl SearchIndex {
             match self.receiver.recv() {
                 Ok(SearchEvent::Quit) => break,
                 Ok(SearchEvent::Search(term)) => self.search(&term),
-                Err(_) => panic!("disconnected before quitting"),
+                Err(_) => {
+                    // TODO disconnect properly before quitting
+                }
             }
         }
     }

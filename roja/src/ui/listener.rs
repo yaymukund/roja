@@ -1,8 +1,9 @@
 use super::Event;
 use crate::util::channel;
+use anyhow::Result;
 
 pub trait Listener {
-    fn on_event(&mut self, event: &Event);
+    fn on_event(&mut self, event: &Event) -> Result<()>;
 }
 
 pub trait IntoListener {

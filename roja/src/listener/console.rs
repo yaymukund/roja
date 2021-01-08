@@ -1,6 +1,6 @@
 use crate::ui::{layout, Event, IntoListener, KeyCode, KeyEvent, Label, Listener};
-use crate::util::{channel, Canvas};
-
+use crate::util::{channel, Canvas, SendDiscard};
+use anyhow::Result;
 use std::rc::Rc;
 
 const SEARCH_PREFIX: &str = "/";
@@ -74,7 +74,7 @@ impl ConsoleListener {
         }
     }
 
-    fn on_key_char(&mut self, c: &char) {
+    fn on_key_char(&mut self, c: &char) -> Result<()> {
         self.text.insert(self.cursor_idx() as usize, *c);
         let end = self.width() - 1;
 
@@ -85,14 +85,14 @@ impl ConsoleListener {
         }
 
         self.draw();
-        self.send_search_event();
+        self.send_search_event()
     }
 
-    fn on_key_backspace(&mut self) {
+    fn on_key_backspace(&mut self) -> Result<()> {
         let cursor_idx = self.cursor_idx();
 
         if cursor_idx == 0 {
-            return;
+            return Ok(());
         }
 
         if self.cursor_offset == 0 {
@@ -101,8 +101,10 @@ impl ConsoleListener {
             self.text.remove(cursor_idx as usize - 1);
             self.cursor_offset -= 1;
             self.draw();
-            self.send_search_event();
+            self.send_search_event()?;
         }
+
+        Ok(())
     }
 
     fn on_key_left(&mut self) {
@@ -132,30 +134,31 @@ impl ConsoleListener {
         self.draw();
     }
 
-    fn send_search_event(&self) {
+    fn send_search_event(&self) -> Result<()> {
         let text = Rc::new(self.text.to_lowercase());
-        self.sender
-            .send(Event::Search(text))
-            .expect("could not send event to a disconnected channel");
+        self.sender.send_discard(Event::Search(text))?;
+        Ok(())
     }
 }
 
 impl Listener for ConsoleListener {
-    fn on_event(&mut self, event: &Event) {
+    fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::Draw => self.draw(),
             Event::OpenSearch => self.enable(),
             Event::CloseSearch => self.disable(),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::Key(KeyEvent { code, .. }) if self.searching => match code {
-                KeyCode::Char(c) => self.on_key_char(c),
-                KeyCode::Backspace => self.on_key_backspace(),
+                KeyCode::Char(c) => self.on_key_char(c)?,
+                KeyCode::Backspace => self.on_key_backspace()?,
                 KeyCode::Left => self.on_key_left(),
                 KeyCode::Right => self.on_key_right(),
                 _ => {}
             },
             _ => {}
         }
+
+        Ok(())
     }
 }
 

@@ -1,31 +1,14 @@
-use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::rc::Rc;
+use crate::ui::Event;
+use anyhow::{anyhow, Result};
+pub use crossbeam_channel::*;
 
-#[derive(Clone)]
-pub struct Sender<T> {
-    data: Rc<RefCell<VecDeque<T>>>,
+pub trait SendDiscard {
+    fn send_discard(&self, event: Event) -> Result<()>;
 }
 
-#[derive(Clone)]
-pub struct Receiver<T> {
-    data: Rc<RefCell<VecDeque<T>>>,
-}
-
-impl<T> Sender<T> {
-    pub fn send(&self, msg: T) {
-        self.data.borrow_mut().push_back(msg);
+impl SendDiscard for Sender<Event> {
+    fn send_discard(&self, event: Event) -> Result<()> {
+        self.send(event)
+            .map_err(|e| anyhow!("Error sending on channel: {}", e))
     }
-}
-
-impl<T> Receiver<T> {
-    pub fn recv(&self) -> Option<T> {
-        self.data.borrow_mut().pop_front()
-    }
-}
-
-pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
-    let data = VecDeque::new();
-    let data = Rc::new(RefCell::new(data));
-    (Sender { data: data.clone() }, Receiver { data })
 }
