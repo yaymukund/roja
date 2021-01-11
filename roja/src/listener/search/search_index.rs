@@ -1,15 +1,13 @@
-use std::fs::File;
-use std::sync::Arc;
-use std::thread;
-
+use crate::util::channel;
+use crate::SETTINGS;
 use anyhow::Result;
-use fst::automaton::Subsequence;
 use fst::IntoStreamer;
 use fst::Map;
 use memmap::Mmap;
-
-use crate::util::channel;
-use crate::SETTINGS;
+use regex_automata::dense;
+use std::fs::File;
+use std::sync::Arc;
+use std::thread;
 
 pub enum SearchEvent {
     Quit,
@@ -46,8 +44,12 @@ impl SearchIndex {
             return;
         }
 
-        let input = Subsequence::new(text);
-        let ids = self.fst.search(input).into_stream().into_values();
+        let pattern = format!(".*{}.*", text);
+        let dfa = dense::Builder::new()
+            .anchored(true)
+            .build(&pattern)
+            .expect("could not build DFA for search pattern");
+        let ids = self.fst.search(dfa).into_stream().into_values();
         self.display_results(ids);
     }
 
