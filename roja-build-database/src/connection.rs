@@ -22,10 +22,10 @@ impl Connection {
         let mut stmt = self.conn.prepare(
             "SELECT
                 id,
-                title || '|' ||
-                album || '|' ||
-                artist || '|' ||
-                path AS search
+                LOWER(title) || '|' ||
+                LOWER(album) || '|' ||
+                LOWER(artist) || '|' ||
+                LOWER(path) AS search
             FROM tracks
             ORDER BY
                 title ASC,
