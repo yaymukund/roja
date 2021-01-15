@@ -50,8 +50,8 @@ impl IntoListener for PlaylistView {
                 .expect("could not send event to disconnected channel");
         })
         .on_event(|event: &Event, list: &mut Self::LType| match event {
-            Event::OpenPlaylist => list.focus(),
-            Event::OpenFolderList | Event::OpenSearch => list.unfocus(),
+            Event::FocusPlaylist => list.focus(),
+            Event::FocusFolderList | Event::FocusSearch => list.unfocus(),
             Event::DisplayPlaylist(playlist) => {
                 list.set_items(playlist.clone());
                 list.set_selected_index(playlist.selected_index);

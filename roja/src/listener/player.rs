@@ -214,8 +214,8 @@ impl PlayerComponent {
 impl Listener for PlayerComponent {
     fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
-            Event::OpenSearch => self.active = false,
-            Event::CloseSearch => self.active = true,
+            Event::FocusSearch => self.active = false,
+            Event::CancelSearch => self.active = true,
             Event::QueuePlaylist(playlist) => self.queue_tracks(playlist),
             Event::Resize(width, height) => self.resize(*width, *height),
             _ => {

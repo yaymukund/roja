@@ -39,8 +39,8 @@ impl IntoListener for FoldersView {
                     .expect("could not send event to disconnected channel");
             })
             .on_event(|event: &Event, list: &mut Self::LType| match event {
-                Event::OpenPlaylist | Event::OpenSearch => list.unfocus(),
-                Event::OpenFolderList | Event::CloseSearch => list.focus(),
+                Event::FocusPlaylist | Event::FocusSearch => list.unfocus(),
+                Event::FocusFolderList | Event::CancelSearch => list.focus(),
                 _ => {}
             })
             .build()

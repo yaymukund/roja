@@ -18,7 +18,7 @@ impl Listener for NowPlayingListener {
                 self.playlist.selected_index = *new_index as usize;
                 let event = Event::DisplayPlaylist(self.playlist.clone());
                 self.sender.send_discard(event)?;
-                self.sender.send_discard(Event::OpenPlaylist)?;
+                self.sender.send_discard(Event::FocusPlaylist)?;
             }
             _ => {}
         }

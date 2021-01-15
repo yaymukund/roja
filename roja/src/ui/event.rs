@@ -20,10 +20,10 @@ pub enum Event {
     // queue songs in playlist, replace "now playing" playlist
     QueuePlaylist(Playlist),
     Quit,
-    OpenPlaylist,
-    OpenFolderList,
-    OpenSearch,
-    CloseSearch,
+    FocusPlaylist,
+    FocusFolderList,
+    FocusSearch,
+    CancelSearch,
     Search(Rc<String>),
 
     // Keypresses, incl. directional presses.

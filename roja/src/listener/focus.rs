@@ -13,9 +13,9 @@ pub struct FocusListener {
 impl FocusListener {
     fn focus_next_tab(&mut self) -> Result<()> {
         let next = if self.opened_playlist {
-            Event::OpenFolderList
+            Event::FocusFolderList
         } else {
-            Event::OpenPlaylist
+            Event::FocusPlaylist
         };
 
         self.sender.send_discard(next)?;
@@ -26,12 +26,12 @@ impl FocusListener {
     fn open_search(&mut self) -> Result<()> {
         self.searching = true;
         self.opened_playlist = false;
-        self.sender.send_discard(Event::OpenSearch)
+        self.sender.send_discard(Event::FocusSearch)
     }
 
     fn close_search(&mut self) -> Result<()> {
         self.searching = false;
-        self.sender.send_discard(Event::CloseSearch)
+        self.sender.send_discard(Event::CancelSearch)
     }
 }
 

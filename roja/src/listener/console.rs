@@ -145,8 +145,8 @@ impl Listener for ConsoleListener {
     fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::Draw => self.draw(),
-            Event::OpenSearch => self.enable(),
-            Event::CloseSearch => self.disable(),
+            Event::FocusSearch => self.enable(),
+            Event::CancelSearch => self.disable(),
             Event::Resize(width, height) => self.resize(*width, *height),
             Event::Key(KeyEvent { code, .. }) if self.searching => match code {
                 KeyCode::Char(c) => self.on_key_char(c)?,
