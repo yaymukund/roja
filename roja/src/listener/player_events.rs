@@ -12,7 +12,7 @@ pub const PROPERTIES: [PlayerProperty; 7] = [
     PlayerProperty::Pause,
     PlayerProperty::MediaTitle,
     PlayerProperty::CoreIdle,
-    PlayerProperty::PlaylistStart,
+    PlayerProperty::PlaylistPos,
 ];
 
 pub struct PlayerEventsListener<'a> {

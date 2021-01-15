@@ -1,11 +1,12 @@
 mod search_index;
 
 use anyhow::Result;
+use std::rc::Rc;
 use std::sync::Arc;
 
-// use crate::store::Playlist;
+use crate::store::{get_tracks_by_id, Playlist};
 use crate::ui::{Event, IntoListener, Listener};
-use crate::util::channel;
+use crate::util::{channel, SendDiscard};
 use search_index::{spawn_searcher, SearchEvent, SearchResult};
 
 pub struct Search;
@@ -27,19 +28,34 @@ impl SearchListener {
         })
     }
 
-    fn tick(&mut self) {
+    fn display_results(&self, ids: Vec<u64>) -> Result<()> {
+        let tracks = if ids.is_empty() {
+            vec![]
+        } else {
+            get_tracks_by_id(&ids)?
+        };
+
+        self.sender.send_discard(Event::DisplayPlaylist(Playlist {
+            tracks: Rc::new(tracks),
+            selected_index: 0,
+        }))
+    }
+
+    fn tick(&mut self) -> Result<()> {
         match self.index_receiver.try_recv() {
-            Ok(results) => println!("{:?}", results),
+            Ok(ids) => self.display_results(ids)?,
             Err(channel::TryRecvError::Disconnected) => panic!("disconnected before quitting"),
             Err(channel::TryRecvError::Empty) => {}
         }
+
+        Ok(())
     }
 }
 
 impl Listener for SearchListener {
     fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
-            Event::Tick => self.tick(),
+            Event::Tick => self.tick()?,
             Event::Quit => self.index_sender.send(SearchEvent::Quit)?,
             Event::Search(term) if term.len() > 2 => {
                 let event = SearchEvent::Search(Arc::new(term.to_string()));

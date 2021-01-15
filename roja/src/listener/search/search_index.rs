@@ -1,8 +1,8 @@
+use crate::settings::SEARCH_RESULTS_LIMIT;
 use crate::util::channel;
 use crate::SETTINGS;
 use anyhow::Result;
-use fst::IntoStreamer;
-use fst::Map;
+use fst::{IntoStreamer, Map, Streamer};
 use memmap::Mmap;
 use regex_automata::dense;
 use std::fs::File;
@@ -49,7 +49,18 @@ impl SearchIndex {
             .anchored(true)
             .build(&pattern)
             .expect("could not build DFA for search pattern");
-        let ids = self.fst.search(dfa).into_stream().into_values();
+
+        let mut stream = self.fst.search(dfa).into_stream();
+        let mut ids = Vec::new();
+
+        while let Some((_, id)) = stream.next() {
+            ids.push(id);
+
+            if ids.len() == SEARCH_RESULTS_LIMIT {
+                break;
+            }
+        }
+
         self.display_results(ids);
     }
 

@@ -142,6 +142,45 @@ pub fn get_paths_by_ids(ids: &[usize]) -> Result<Vec<PathBuf>> {
     Ok(paths)
 }
 
+pub fn get_tracks_by_id(ids: &[u64]) -> Result<Vec<Track>> {
+    let conn = get_connection();
+    let params = (0..ids.len()).map(|_| "?").collect::<Vec<&str>>().join(",");
+    let order_params = (0..ids.len())
+        .map(|idx| format!("WHEN ? THEN {}", idx))
+        .collect::<Vec<String>>()
+        .join("\n");
+    let mut ids: Vec<i64> = ids.iter().map(|id| *id as i64).collect();
+    ids.extend(ids.clone());
+
+    let mut stmt = conn.prepare(&format!(
+        "SELECT
+            id,
+            title,
+            album,
+            artist,
+            date,
+            track_number,
+            duration_seconds,
+            path,
+            folder_id
+        FROM tracks
+        WHERE ID in ( {} )
+        ORDER BY
+            CASE id
+            {}
+            END;",
+        params, order_params
+    ))?;
+
+    let tracks: Vec<Track> = stmt
+        .query_map(&ids, row_to_track)?
+        .filter_map(Result::ok)
+        .collect();
+
+    log::info!("Found {} tracks in db matching search query", tracks.len());
+    Ok(tracks)
+}
+
 fn row_to_track(row: &Row<'_>) -> rusqlite::Result<Track> {
     let id: i64 = row.get(0)?;
     let duration: i64 = row.get(6)?;

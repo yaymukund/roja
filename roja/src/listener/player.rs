@@ -221,7 +221,7 @@ impl Listener for PlayerComponent {
             _ => {
                 if let Some('c') = event.pressed_char() {
                     self.toggle_pause();
-                } else if let Some(dir) = event.direction() {
+                } else if let Some(dir) = event.key_event_direction() {
                     self.seek(dir);
                 }
             }
@@ -247,7 +247,7 @@ impl Listener for PlayerComponent {
             _ => {
                 if let Some('c') = event.pressed_char() {
                     self.draw_indicator()
-                } else if let Some(dir) = event.direction() {
+                } else if let Some(dir) = event.key_event_direction() {
                     if dir == Direction::Left || dir == Direction::Right {
                         self.draw_current_time(self.player.elapsed())
                     }

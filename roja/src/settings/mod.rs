@@ -11,6 +11,8 @@ pub use colors::Colors;
 use config::Config;
 pub use deserialize_color::SColor;
 
+pub const SEARCH_RESULTS_LIMIT: usize = 200;
+
 static BASEDIRECTORY_PREFIX: &str = "roja";
 static FILENAME_CONFIG: &str = "config.toml";
 static FILENAME_DB: &str = "roja-store.db";

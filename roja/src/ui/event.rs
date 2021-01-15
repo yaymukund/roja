@@ -10,15 +10,14 @@ use crate::store::Playlist;
 
 #[derive(Clone, Debug)]
 pub enum Event {
-    // every tick
     Tick,
-    // terminal size changed
+    // terminal size changed, sent when terminal size changes.
     Resize(u16, u16),
-    // redraw
+    // redraw, also sent after resize.
     Draw,
-    // show playlist
+    // show playlist in the UI
     DisplayPlaylist(Playlist),
-    // queue songs in playlist, starting with selected song
+    // queue songs in playlist, replace "now playing" playlist
     QueuePlaylist(Playlist),
     Quit,
     OpenPlaylist,
@@ -76,7 +75,14 @@ impl Event {
         }
     }
 
-    pub fn direction(&self) -> Option<Direction> {
+    fn key_event(&self) -> Option<KeyEvent> {
+        match self {
+            Event::Key(key_event) => Some(*key_event),
+            _ => None,
+        }
+    }
+
+    pub fn key_event_direction(&self) -> Option<Direction> {
         let ev = self.key_event()?;
 
         if ev.modifiers.contains(KeyModifiers::CONTROL) {
@@ -88,6 +94,8 @@ impl Event {
         }
 
         match ev.code {
+            KeyCode::PageUp => Some(Direction::PageUp),
+            KeyCode::PageDown => Some(Direction::PageDown),
             KeyCode::Char('h') | KeyCode::Left => Some(Direction::Left),
             KeyCode::Char('j') | KeyCode::Down => Some(Direction::Down),
             KeyCode::Char('k') | KeyCode::Up => Some(Direction::Up),
@@ -95,17 +103,11 @@ impl Event {
             _ => None,
         }
     }
-
-    fn key_event(&self) -> Option<KeyEvent> {
-        match self {
-            Event::Key(key_event) => Some(*key_event),
-            _ => None,
-        }
-    }
 }
 
 impl<'a> From<MpvEvent<'a>> for Event {
     fn from(mpv_event: MpvEvent<'_>) -> Self {
+        log::info!("Found mpv_event: {:?}", mpv_event);
         match mpv_event {
             MpvEvent::PropertyChange {
                 name: "time-pos",

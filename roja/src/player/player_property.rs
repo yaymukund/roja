@@ -9,7 +9,7 @@ pub enum PlayerProperty {
     Elapsed,
     MediaTitle,
     Pause,
-    PlaylistStart,
+    PlaylistPos,
 }
 
 use PlayerProperty::*;
@@ -23,7 +23,7 @@ impl PlayerProperty {
             Duration => "duration",
             MediaTitle => "media-title",
             Pause => "pause",
-            PlaylistStart => "playlist-start",
+            PlaylistPos => "playlist-pos",
         }
     }
 
@@ -35,7 +35,7 @@ impl PlayerProperty {
             Duration => Format::Int64,
             MediaTitle => Format::String,
             Pause => Format::String,
-            PlaylistStart => Format::Int64,
+            PlaylistPos => Format::Int64,
         }
     }
 }
@@ -51,7 +51,7 @@ impl FromStr for PlayerProperty {
             "duration" => Ok(Duration),
             "media-title" => Ok(MediaTitle),
             "pause" => Ok(Pause),
-            "playlist-start" => Ok(PlaylistStart),
+            "playlist-pos" => Ok(PlaylistPos),
             _ => Err(()),
         }
     }

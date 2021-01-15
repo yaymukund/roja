@@ -399,7 +399,7 @@ impl<R: ListRow, L: Deref<Target = [R]>> Listener for List<R, L> {
 
         let old_selected_index = self.selected_index;
 
-        match event.direction() {
+        match event.key_event_direction() {
             Some(Direction::Down) => self.scroll_down(),
             Some(Direction::Up) => self.scroll_up(),
             Some(Direction::PageDown) => self.scroll_page_down(),
