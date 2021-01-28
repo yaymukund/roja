@@ -29,7 +29,7 @@ impl FocusListener {
         self.sender.send_discard(Event::FocusSearch)
     }
 
-    fn close_search(&mut self) -> Result<()> {
+    fn cancel_search(&mut self) -> Result<()> {
         self.searching = false;
         self.sender.send_discard(Event::CancelSearch)
     }
@@ -50,7 +50,7 @@ impl IntoListener for Focus {
 impl Listener for FocusListener {
     fn on_event(&mut self, event: &Event) -> Result<()> {
         match (self.searching, event.keycode()) {
-            (true, Some(KeyCode::Esc)) => self.close_search()?,
+            (true, Some(KeyCode::Esc)) => self.cancel_search()?,
             (true, _) => {}
             (false, Some(KeyCode::Char('/'))) => self.open_search()?,
             (false, Some(KeyCode::Char('q'))) => self.sender.send_discard(Event::Quit)?,

@@ -145,7 +145,7 @@ impl<'a> From<MpvEvent<'a>> for Event {
                 name: "playlist-pos",
                 change: PropertyData::Int64(new_index),
                 ..
-            } => Event::ChangePlaylistIndex(new_index),
+            } if new_index >= 0 => Event::ChangePlaylistIndex(new_index),
 
             _ => Event::UnknownMpvEvent,
         }

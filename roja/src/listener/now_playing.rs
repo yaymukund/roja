@@ -10,15 +10,21 @@ pub struct NowPlayingListener {
     sender: channel::Sender<Event>,
 }
 
+impl NowPlayingListener {
+    fn display_now_playing(&mut self) -> Result<()> {
+        self.sender
+            .send_discard(Event::DisplayPlaylist(self.playlist.clone()))
+    }
+}
+
 impl Listener for NowPlayingListener {
     fn on_event(&mut self, event: &Event) -> Result<()> {
         match event {
             Event::QueuePlaylist(playlist) => self.playlist = playlist.clone(),
-            Event::ChangePlaylistIndex(new_index) if *new_index >= 0 => {
+            Event::CancelSearch => self.display_now_playing()?,
+            Event::ChangePlaylistIndex(new_index) => {
                 self.playlist.selected_index = *new_index as usize;
-                let event = Event::DisplayPlaylist(self.playlist.clone());
-                self.sender.send_discard(event)?;
-                self.sender.send_discard(Event::FocusPlaylist)?;
+                self.display_now_playing()?;
             }
             _ => {}
         }
